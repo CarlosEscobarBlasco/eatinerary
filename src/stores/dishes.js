@@ -127,6 +127,17 @@ export const useDishStore = defineStore('dishes', () => {
         await deleteDishImage(dish.image_url)
       }
 
+      // Borrar referencias en daily_menu directamente
+      // Usar delete en lugar de select para evitar problemas de RLS
+      await supabase
+        .from(TABLES.DAILY_MENU)
+        .delete()
+        .eq('dish_id', id)
+
+      // Pequeña pausa para que se procese el borrado
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Borrar el plato
       const { error: err } = await supabase
         .from(TABLES.DISHES)
         .delete()
@@ -137,6 +148,7 @@ export const useDishStore = defineStore('dishes', () => {
       return true
     } catch (e) {
       error.value = e.message
+      console.error('Error deleting dish:', e)
       return false
     } finally {
       loading.value = false
