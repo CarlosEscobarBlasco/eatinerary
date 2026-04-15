@@ -320,6 +320,8 @@ onMounted(() => {
 .dishes-view {
   min-height: 100vh;
   background: var(--surface);
+  padding-top: 60px;
+  padding-bottom: 100px;
 }
 
 .dishes-header {
@@ -328,9 +330,11 @@ onMounted(() => {
   justify-content: center;
   padding: 16px 20px;
   background: var(--surface);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .dishes-header h1 {
@@ -442,7 +446,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  padding: 16px 20px;
+  padding: 16px 20px 100px;
 }
 
 .dish-card {

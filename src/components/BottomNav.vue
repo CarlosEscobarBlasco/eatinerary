@@ -37,7 +37,7 @@ import { RouterLink } from 'vue-router'
   justify-content: center;
   gap: 8px;
   padding: 8px;
-  background: var(--surface-container);
+  background: #e0d8c8;
   border-radius: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 50;

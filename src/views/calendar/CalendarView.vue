@@ -658,15 +658,19 @@ onMounted(async () => {
   background: var(--surface);
   display: flex;
   flex-direction: column;
+  padding-top: 65px;
+  padding-bottom: 100px;
 }
 
 /* Header - Fixed */
 .calendar-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   padding: 16px 20px 12px;
   background: var(--surface);
-  z-index: 10;
+  z-index: 20;
 }
 
 .header-content {
@@ -717,14 +721,16 @@ onMounted(async () => {
 
 /* View Toggle - Fixed */
 .view-toggle {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 55px;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
   gap: 4px;
-  padding: 0 20px 12px;
+  padding: 8px 20px 12px;
   background: var(--surface);
-  z-index: 9;
+  z-index: 19;
 }
 
 .toggle-btn {
@@ -742,21 +748,23 @@ onMounted(async () => {
   color: var(--on-primary);
 }
 
-/* Scrollable Content */
+/* Scrollable Content - Scrollable only the list */
 .scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px 100px;
+  padding: 140px 16px 100px;
 }
 
 .month-scroll {
-  padding-top: 8px;
+  padding-top: 140px;
 }
 
-/* Weekly View - Vertical List */
+/* Weekend Toggle - Fixed */
 .weekend-toggle {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 100px;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -764,7 +772,7 @@ onMounted(async () => {
   background: var(--surface);
   margin-bottom: 12px;
   cursor: pointer;
-  z-index: 8;
+  z-index: 18;
 }
 
 .weekend-toggle span {
