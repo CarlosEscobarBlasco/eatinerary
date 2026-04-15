@@ -1,0 +1,221 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Primary - Naranja cálido */
+  --primary: #9f4e00;
+  --primary-container: #ff8929;
+  --primary-fixed: #ff8929;
+  --on-primary: #ffffff;
+  --on-primary-container: #471f00;
+  
+  /* Secondary - Marrón suave */
+  --secondary: #7c5e4b;
+  --secondary-container: #ffdcc7;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #674c3a;
+  
+  /* Tertiary - Amarillo mostaza */
+  --tertiary: #6f652c;
+  --tertiary-container: #f8e9a3;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #5f551e;
+  
+  /* Surface - Fondo cálwarm */
+  --surface: #fffaf0;
+  --surface-bright: #fffaf0;
+  --surface-container: #f5eee0;
+  --surface-container-high: #f0e8d8;
+  --surface-container-highest: #eae0cc;
+  --surface-container-low: #fff8e8;
+  --surface-container-lowest: #ffffff;
+  --surface-dim: #e8e0d0;
+  --surface-variant: #eae0cc;
+  
+  /* Textos */
+  --on-surface: #393831;
+  --on-surface-variant: #66645d;
+  --on-background: #393831;
+  
+  /* Bordes */
+  --outline: #828178;
+  --outline-variant: #bcb9b0;
+  
+  /* Errores */
+  --error: #ae4025;
+  --error-container: #fd795a;
+  --on-error: #ffffff;
+  --on-error-container: #6e1400;
+  
+  /* Radio */
+  --radius: 24px;
+  --radius-sm: 16px;
+  --radius-lg: 32px;
+  
+  /* Sombras */
+  --shadow: rgba(57, 56, 49, 0.06);
+  --shadow-lg: rgba(57, 56, 49, 0.12);
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--on-surface);
+  background: var(--surface);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--surface-container-high);
+  border-right: 1px solid var(--surface-container-high);
+}
+
+@media (max-width: 480px) {
+  #app {
+    border: none;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Utilidades */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  color: var(--on-primary);
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.btn-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-container-lowest);
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: all 0.2s;
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+/* Card base */
+.card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+/* Input base */
+.input-field {
+  width: 100%;
+  padding: 16px;
+  background: var(--surface-container-highest);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--on-surface);
+  transition: all 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+/* Badge/Chip */
+.badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.badge-secondary {
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-container);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 3px;
+}
