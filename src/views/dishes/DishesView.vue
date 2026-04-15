@@ -176,25 +176,26 @@
               >
                 <span>Cena</span>
               </button>
-              <button 
-                type="button"
-                class="meal-option"
-                :class="{ active: form.meal_type === 'both' }"
-                @click="form.meal_type = 'both'"
-              >
-                <span>Ambos</span>
-              </button>
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group url-group">
             <label>Link (URL)</label>
-            <input 
-              v-model="form.url" 
-              type="url" 
-              placeholder="https://..." 
-              class="input-field"
-            />
+            <div class="url-input-wrapper">
+              <input 
+                v-model="form.url" 
+                type="url" 
+                placeholder="https://..." 
+                class="input-field"
+              />
+              <a v-if="form.url" :href="form.url" target="_blank" class="url-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
           </div>
 
           <div class="form-group">
@@ -771,6 +772,35 @@ onMounted(() => {
 .textarea {
   resize: vertical;
   min-height: 80px;
+}
+
+.url-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.url-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.url-input-wrapper .input-field {
+  padding-right: 48px;
+}
+
+.url-btn {
+  position: absolute;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-primary);
 }
 
 /* Image Preview */
