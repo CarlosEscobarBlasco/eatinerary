@@ -23,11 +23,13 @@
         <div class="dish-card-overlay">
           <div class="dish-card-content">
             <h3>{{ dish.name }}</h3>
-            <div class="dish-badges">
-              <span v-if="dish.meal_type === 'lunch'" class="dish-badge lunch"></span>
-              <span v-else-if="dish.meal_type === 'dinner'" class="dish-badge dinner"></span>
-              <span v-else class="dish-badge both"></span>
-            </div>
+            <a v-if="dish.url" :href="dish.url" target="_blank" class="dish-link" @click.stop>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
           </div>
         </div>
       </article>
@@ -52,7 +54,10 @@
           <h2>{{ editingDish ? 'Editar Plato' : 'Nuevo Plato' }}</h2>
           <div class="header-actions">
             <button v-if="editingDish" class="delete-btn" @click="deleteDish">
-              <span>🗑️</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
             </button>
             <button class="close-btn" @click="closeForm">
               <span>×</span>
@@ -93,7 +98,11 @@
                   class="file-input"
                 />
                 <div class="upload-content">
-                  <span class="upload-icon">📷</span>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 21 5"></polyline>
+                  </svg>
                   <span class="upload-text">Subir imagen</span>
                 </div>
               </label>
@@ -134,7 +143,6 @@
                 :class="{ active: form.meal_type === 'lunch' }"
                 @click="form.meal_type = 'lunch'"
               >
-                <span class="option-color lunch"></span>
                 <span>Comida</span>
               </button>
               <button 
@@ -143,7 +151,6 @@
                 :class="{ active: form.meal_type === 'dinner' }"
                 @click="form.meal_type = 'dinner'"
               >
-                <span class="option-color dinner"></span>
                 <span>Cena</span>
               </button>
               <button 
@@ -152,7 +159,6 @@
                 :class="{ active: form.meal_type === 'both' }"
                 @click="form.meal_type = 'both'"
               >
-                <span class="option-color both"></span>
                 <span>Ambos</span>
               </button>
             </div>
@@ -482,8 +488,22 @@ onMounted(() => {
 .dish-card-content h3 {
   font-size: 1rem;
   color: white;
-  margin: 0 0 8px;
+  margin: 0;
   font-weight: 600;
+}
+
+.dish-link {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
 }
 
 .dish-badges {

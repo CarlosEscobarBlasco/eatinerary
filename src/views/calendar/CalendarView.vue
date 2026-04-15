@@ -392,6 +392,13 @@ function nextMonth() {
 function goToToday() {
   currentYear.value = today.getFullYear()
   currentMonth.value = today.getMonth()
+  // Scroll to today after changing month
+  setTimeout(() => {
+    const todayEl = document.querySelector('.day-row.today')
+    if (todayEl) {
+      todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, 100)
 }
 
 function getWeekLabel(days) {
@@ -426,27 +433,51 @@ function closeDishSelector() { dishSelector.value = { show: false, mealType: nul
 async function copyFromPreviousMonth() {
   const prevYear = currentMonth.value === 0 ? currentYear.value - 1 : currentYear.value
   const prevMonth = currentMonth.value === 0 ? 11 : currentMonth.value - 1
-  const firstDay = new Date(prevYear, prevMonth, 1)
-  const lastDay = new Date(prevYear, prevMonth + 1, 0)
+  const prevFirstDay = new Date(prevYear, prevMonth, 1)
+  const prevLastDay = new Date(prevYear, prevMonth + 1, 0)
   
-  await dailyMenuStore.fetchDailyMenus(formatDate(firstDay), formatDate(lastDay))
+  await dailyMenuStore.fetchDailyMenus(formatDate(prevFirstDay), formatDate(prevLastDay))
   
-  const prevMenus = {}
+  // Organizar menús del mes anterior por posición del día de la semana
+  // key = "0_0" (primer param: dow 0-6, segundo: posición en el mes 0-4)
+  const prevMenusByPos = {}
+  
   for (const menu of dailyMenuStore.dailyMenus) {
-    if (!prevMenus[menu.date]) prevMenus[menu.date] = { lunch: null, dinner: null }
-    prevMenus[menu.date][menu.meal_type] = menu.dishes
+    const menuDate = new Date(menu.date + 'T00:00:00')
+    const dow = menuDate.getDay()
+    // Calcular posición en el mes (0 = primera vez que sale ese dow, 1 = segunda vez, etc.)
+    const firstDayOfMonth = new Date(menuDate.getFullYear(), menuDate.getMonth(), 1)
+    let pos = 0
+    const currentDate = new Date(firstDayOfMonth)
+    while (currentDate < menuDate) {
+      if (currentDate.getDay() === dow) pos++
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    const key = `${dow}_${pos}`
+    const dish = Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes
+    if (!prevMenusByPos[key]) prevMenusByPos[key] = { lunch: null, dinner: null }
+    prevMenusByPos[key][menu.meal_type] = dish
   }
   
-  const currentFirstDay = new Date(currentYear.value, currentMonth.value, 1)
   const currentLastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
   
+  // Copiar por posición en el mes
   for (let day = 1; day <= currentLastDay.getDate(); day++) {
     const date = new Date(currentYear.value, currentMonth.value, day)
     const dateStr = formatDate(date)
-    const prevDate = new Date(prevYear, prevMonth, day)
-    const prevDateStr = formatDate(prevDate)
-    const prevMenu = prevMenus[prevDateStr]
+    const dow = date.getDay()
     
+    // Calcular posición en el mes actual
+    const firstDayOfMonth = new Date(currentYear.value, currentMonth.value, 1)
+    let pos = 0
+    const currentDate = new Date(firstDayOfMonth)
+    while (currentDate < date) {
+      if (currentDate.getDay() === dow) pos++
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    const key = `${dow}_${pos}`
+    const prevMenu = prevMenusByPos[key]
     if (prevMenu?.lunch) await dailyMenuStore.setDishForDate(dateStr, prevMenu.lunch.id, 'lunch')
     if (prevMenu?.dinner) await dailyMenuStore.setDishForDate(dateStr, prevMenu.dinner.id, 'dinner')
   }
@@ -614,7 +645,7 @@ onMounted(async () => {
 
 .toggle-switch.on .toggle-thumb { transform: translateX(20px); }
 
-.calendar-content { padding: 140px 16px 100px; }
+.calendar-content { padding: 160px 16px 100px; }
 
 .month-list { display: flex; flex-direction: column; gap: 4px; }
 
