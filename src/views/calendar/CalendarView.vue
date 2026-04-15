@@ -29,8 +29,8 @@
       </div>
     </header>
 
-    <!-- View Toggle - Fixed -->
-    <div class="view-toggle">
+    <!-- View Toggle - Fixed always visible -->
+    <div class="view-toggle-always">
       <button 
         class="toggle-btn" 
         :class="{ active: !isMonthlyView }"
@@ -146,8 +146,15 @@
     <!-- Day Detail Modal -->
     <div v-if="selectedDate" class="modal-overlay" @click.self="closeDayDetail">
       <div class="modal-content">
-        <div class="modal-handle"></div>
-        <h2 class="modal-title">{{ formatSelectedDate }}</h2>
+        <div class="modal-header-row">
+          <h2 class="modal-title">{{ formatSelectedDate }}</h2>
+          <button class="modal-close-icon" @click="closeDayDetail">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
         
         <div class="modal-meal">
           <div class="modal-meal-header">
@@ -668,16 +675,16 @@ onMounted(async () => {
   top: 0;
   left: 0;
   right: 0;
-  padding: 16px 20px 12px;
+  padding: 12px 20px 12px;
   background: var(--surface);
-  z-index: 20;
+  z-index: 100;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .calendar-header h1 {
@@ -719,10 +726,10 @@ onMounted(async () => {
   color: var(--on-surface);
 }
 
-/* View Toggle - Fixed */
-.view-toggle {
+/* View Toggle - Always visible */
+.view-toggle-always {
   position: fixed;
-  top: 55px;
+  top: 50px;
   left: 0;
   right: 0;
   display: flex;
@@ -730,7 +737,7 @@ onMounted(async () => {
   gap: 4px;
   padding: 8px 20px 12px;
   background: var(--surface);
-  z-index: 19;
+  z-index: 100;
 }
 
 .toggle-btn {
@@ -752,17 +759,17 @@ onMounted(async () => {
 .scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding: 140px 16px 100px;
+  padding: 110px 16px 100px;
 }
 
 .month-scroll {
-  padding-top: 140px;
+  padding-top: 110px;
 }
 
 /* Weekend Toggle - Fixed */
 .weekend-toggle {
   position: fixed;
-  top: 100px;
+  top: 95px;
   left: 0;
   right: 0;
   display: flex;
@@ -770,9 +777,8 @@ onMounted(async () => {
   justify-content: space-between;
   padding: 12px 16px;
   background: var(--surface);
-  margin-bottom: 12px;
   cursor: pointer;
-  z-index: 18;
+  z-index: 100;
 }
 
 .weekend-toggle span {
@@ -1054,12 +1060,31 @@ onMounted(async () => {
   margin: 0 auto 16px;
 }
 
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--on-surface);
-  margin: 0 0 20px;
-  text-align: center;
+  margin: 0;
+}
+
+.modal-close-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface);
+  border: none;
+  cursor: pointer;
 }
 
 .modal-text {
