@@ -3,9 +3,9 @@
 }
 
 :root {
-  /* Primary - Naranja cálido */
-  --primary: #9f4e00;
-  --primary-container: #ff8929;
+  /* Primary - Naranja suave */
+  --primary: #e67300;
+  --primary-container: #ffcc80;
   --primary-fixed: #ff8929;
   --on-primary: #ffffff;
   --on-primary-container: #471f00;

@@ -1,89 +1,121 @@
 <script setup>
 import { RouterView, useRouter, useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import BottomNav from './components/BottomNav.vue'
 
 const router = useRouter()
 const route = useRoute()
 
+// Carousel state
 const startX = ref(0)
-const startY = ref(0)
-const isSwiping = ref(false)
-const direction = ref('')
+const currentX = ref(0)
+const isDragging = ref(false)
+const containerRef = ref(null)
+
+// Views in order
+const views = ['/', '/dishes']
+const currentIndex = computed(() => views.indexOf(route.path))
+
+function getDirection(offsetX) {
+  if (Math.abs(offsetX) < 30) return null
+  
+  const currentIdx = currentIndex.value
+  if (offsetX > 0 && currentIdx > 0) {
+    return 'right' // Going to previous view
+  } else if (offsetX < 0 && currentIdx < views.length - 1) {
+    return 'left' // Going to next view
+  }
+  return null
+}
 
 function onTouchStart(e) {
+  // Don't capture swipe on buttons or interactive elements
+  if (e.target.closest('button') || e.target.closest('a')) return
   startX.value = e.touches[0].clientX
-  startY.value = e.touches[0].clientY
-  isSwiping.value = true
-  direction.value = ''
+  isDragging.value = true
+}
+
+function onTouchMove(e) {
+  if (!isDragging.value) return
+  const currentPosition = e.touches[0].clientX
+  currentX.value = currentPosition - startX.value
+  
+  const direction = getDirection(currentX.value)
+  if (direction) {
+    e.preventDefault()
+  }
 }
 
 function onTouchEnd(e) {
-  if (!isSwiping.value) return
-  const endX = e.changedTouches[0].clientX
-  const endY = e.changedTouches[0].clientY
+  if (!isDragging.value) return
+  const deltaX = currentX.value
   
-  const deltaX = endX - startX.value
-  const deltaY = endY - startY.value
-  
-  if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
-    direction.value = deltaX > 0 ? 'right' : 'left'
-    
-    if (deltaX > 0) {
-      if (route.path === '/dishes') {
-        router.push('/')
-      }
-    } else {
-      if (route.path === '/') {
-        router.push('/dishes')
-      }
-    }
+  const direction = getDirection(deltaX)
+  if (direction === 'left' && currentIndex.value < views.length - 1) {
+    router.push(views[currentIndex.value + 1])
+  } else if (direction === 'right' && currentIndex.value > 0) {
+    router.push(views[currentIndex.value - 1])
   }
   
-  isSwiping.value = false
+  isDragging.value = false
+  currentX.value = 0
 }
 
 function onMouseDown(e) {
+  // Don't capture swipe on buttons or interactive elements
+  if (e.target.closest('button') || e.target.closest('a')) return
   startX.value = e.clientX
-  startY.value = e.clientY
-  isSwiping.value = true
-  direction.value = ''
+  isDragging.value = true
+}
+
+function onMouseMove(e) {
+  if (!isDragging.value) return
+  currentX.value = e.clientX - startX.value
+  
+  const direction = getDirection(currentX.value)
+  if (direction) {
+    document.body.style.overflow = 'hidden'
+  }
 }
 
 function onMouseUp(e) {
-  if (!isSwiping.value) return
-  const deltaX = e.clientX - startX.value
-  const deltaY = e.clientY - startY.value
+  if (!isDragging.value) return
+  const deltaX = currentX.value
   
-  if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
-    direction.value = deltaX > 0 ? 'right' : 'left'
-    
-    if (deltaX > 0) {
-      if (route.path === '/dishes') {
-        router.push('/')
-      }
-    } else {
-      if (route.path === '/') {
-        router.push('/dishes')
-      }
-    }
+  const direction = getDirection(deltaX)
+  if (direction === 'left' && currentIndex.value < views.length - 1) {
+    router.push(views[currentIndex.value + 1])
+  } else if (direction === 'right' && currentIndex.value > 0) {
+    router.push(views[currentIndex.value - 1])
   }
   
-  isSwiping.value = false
+  document.body.style.overflow = ''
+  isDragging.value = false
+  currentX.value = 0
 }
+
+// Transition direction
+const transitionName = computed(() => {
+  if (currentX.value > 30) return 'slide-back'
+  if (currentX.value < -30) return 'slide-forward'
+  return ''
+})
 </script>
 
 <template>
   <div 
     class="app-container"
-    @touchstart="onTouchStart"
+    @touchstart.passive="onTouchStart"
+    @touchmove="onTouchMove"
     @touchend="onTouchEnd"
     @mousedown="onMouseDown"
+    @mousemove="onMouseMove"
     @mouseup="onMouseUp"
+    @mouseleave="onMouseUp"
   >
     <RouterView v-slot="{ Component }">
-      <Transition :name="direction" mode="out-in">
-        <component :is="Component" />
+      <Transition :name="transitionName" mode="out-in">
+        <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
     <BottomNav />
@@ -94,33 +126,34 @@ function onMouseUp(e) {
 .app-container {
   min-height: 100vh;
   overflow-x: hidden;
+  touch-action: pan-y;
 }
 
 /* Fluid carousel transitions */
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+.slide-forward-enter-active,
+.slide-forward-leave-active,
+.slide-back-enter-active,
+.slide-back-leave-active {
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.slide-left-enter-from {
+.slide-forward-enter-from {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(100%);
 }
 
-.slide-left-leave-to {
+.slide-forward-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-100%);
 }
 
-.slide-right-enter-from {
+.slide-back-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-100%);
 }
 
-.slide-right-leave-to {
+.slide-back-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(100%);
 }
 </style>
