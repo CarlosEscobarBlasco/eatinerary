@@ -1,4 +1,4 @@
-# Eatinerary - Tu Menú Semanal
+# Mealendar - Tu Menú Semanal
 
 Aplicación móvil para planificar tu menú semanal. Gestiona un repertorio de platos y asígnalos a días específicos para comida y cena.
 
@@ -175,7 +175,7 @@ npm run dev
 ## Estructura del Proyecto
 
 ```
-eatinerary/
+mealendar/
 ├── src/
 │   ├── lib/
 │   │   ├── router/index.js

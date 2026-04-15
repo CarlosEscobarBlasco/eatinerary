@@ -54,6 +54,9 @@ import { RouterLink } from 'vue-router'
   font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .nav-item.active {

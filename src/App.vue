@@ -5,6 +5,16 @@ import BottomNav from './components/BottomNav.vue'
 
 const router = useRouter()
 const route = useRoute()
+const showBottomNav = ref(true)
+
+onMounted(() => {
+  window.addEventListener('hide-bottom-nav', () => {
+    showBottomNav.value = false
+  })
+  window.addEventListener('show-bottom-nav', () => {
+    showBottomNav.value = true
+  })
+})
 
 // Carousel state
 const startX = ref(0)
@@ -118,7 +128,7 @@ const transitionName = computed(() => {
         <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
-    <BottomNav />
+    <BottomNav v-if="showBottomNav" />
   </div>
 </template>
 

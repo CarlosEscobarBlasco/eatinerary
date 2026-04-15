@@ -2,7 +2,7 @@
   <div class="home">
     <header class="home-header">
       <div class="logo-icon">🍽️</div>
-      <h1>Eatinerary</h1>
+      <h1>Mealendar</h1>
       <p>Tu menú semanal</p>
     </header>
 

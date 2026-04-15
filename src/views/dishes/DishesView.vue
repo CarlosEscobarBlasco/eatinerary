@@ -2,6 +2,18 @@
   <div class="dishes-view">
     <header class="dishes-header">
       <h1>Mis Platos</h1>
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="M21 21l-4.35-4.35"></path>
+        </svg>
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="Buscar..."
+          class="search-input"
+        />
+      </div>
     </header>
 
     <div v-if="dishStore.loading" class="loading">
@@ -14,13 +26,17 @@
 
     <div v-else class="dishes-grid">
       <article 
-        v-for="dish in dishStore.dishes" 
+        v-for="dish in filteredDishes" 
         :key="dish.id" 
         class="dish-card"
         :style="dish.image_url ? { backgroundImage: `url(${dish.image_url})` } : {}"
+        :class="{ 'no-image': !dish.image_url }"
         @click="openForm(dish)"
       >
         <div class="dish-card-overlay">
+          <div v-if="!dish.image_url" class="dish-initial">
+            {{ dish.name.charAt(0).toUpperCase() }}
+          </div>
           <div class="dish-card-content">
             <h3>{{ dish.name }}</h3>
             <a v-if="dish.url" :href="dish.url" target="_blank" class="dish-link" @click.stop>
@@ -34,11 +50,18 @@
         </div>
       </article>
 
-      <div v-if="dishStore.dishes.length === 0" class="empty-state">
-        <div class="empty-icon">🍽️</div>
-        <h3>No hay platos todavía</h3>
-        <p>Añade tu primer plato para comenzar</p>
-        <button class="add-first-btn" @click="openForm()">Añadir plato</button>
+      <div v-if="filteredDishes.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+        </div>
+        <h3 v-if="searchQuery">No se encontraron platos</h3>
+        <h3 v-else>No hay platos todavía</h3>
+        <p v-if="searchQuery">Prueba con otra búsqueda</p>
+        <p v-else>Añade tu primer plato para comenzar</p>
+        <button v-if="!searchQuery" class="add-first-btn" @click="openForm()">Añadir plato</button>
       </div>
     </div>
 
@@ -198,12 +221,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useDishStore } from '../../stores/dishes'
 import { MEAL_TYPES } from '../../lib/supabase'
 
 const dishStore = useDishStore()
+
+const searchQuery = ref('')
+
+const filteredDishes = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim()
+  if (!query) return dishStore.dishes
+  return dishStore.dishes.filter(dish => 
+    dish.name.toLowerCase().includes(query)
+  )
+})
 
 const showForm = ref(false)
 const editingDish = ref(null)
@@ -326,14 +359,14 @@ onMounted(() => {
 .dishes-view {
   min-height: 100vh;
   background: var(--surface);
-  padding-top: 60px;
+  padding-top: 110px;
   padding-bottom: 100px;
 }
 
 .dishes-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px 20px;
   background: var(--surface);
   position: fixed;
@@ -341,6 +374,37 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 100;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface-container);
+  border-radius: var(--radius);
+  width: 100%;
+}
+
+.search-box svg {
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  color: var(--on-surface);
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--on-surface-variant);
 }
 
 .dishes-header h1 {
@@ -456,7 +520,7 @@ onMounted(() => {
 }
 
 .dish-card {
-  aspect-ratio: 1;
+  aspect-ratio: 1.2;
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
@@ -474,6 +538,22 @@ onMounted(() => {
 
 .dish-card:active {
   transform: scale(0.98);
+}
+
+.dish-card.no-image {
+  background: var(--surface-container);
+}
+
+.dish-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+  z-index: 1;
 }
 
 .dish-card-overlay {

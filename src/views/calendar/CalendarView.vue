@@ -134,18 +134,20 @@
     <div v-if="selectedDate" class="modal-overlay" @click.self="closeDayDetail">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>{{ formatSelectedDate }}</h2>
-          <button class="modal-close" @click="closeDayDetail">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <div class="header-top">
+            <h2>{{ formatSelectedDate }}</h2>
+            <button class="modal-close" @click="closeDayDetail">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
         
         <div class="modal-meal">
           <div class="modal-meal-header">
-            <span>Almuerzo</span>
+            <span>Comida</span>
           </div>
           <div v-if="dayMenu.lunch" class="modal-dish" @click="selectDish('lunch')">
             <span>{{ dayMenu.lunch.name }}</span>
@@ -172,14 +174,28 @@
     <!-- Dish Selector Modal -->
     <div v-if="dishSelector.show" class="modal-overlay" @click.self="closeDishSelector">
       <div class="modal-content">
-        <div class="modal-header">
-          <h2>{{ dishSelector.mealType === 'lunch' ? 'Elige Almuerzo' : 'Elige Cena' }}</h2>
-          <button class="modal-close" @click="closeDishSelector">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
+        <div class="modal-header dish-selector-header">
+          <div class="header-top">
+            <h2>{{ dishSelector.mealType === 'lunch' ? 'Elige Comida' : 'Elige Cena' }}</h2>
+            <button class="modal-close" @click="closeDishSelector">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
             </svg>
-          </button>
+            <input 
+              v-model="dishSearchQuery" 
+              type="text" 
+              placeholder="Buscar..."
+              class="search-input"
+            />
+          </div>
         </div>
         
         <div class="dish-list">
@@ -237,6 +253,7 @@ const dayMenu = ref({ lunch: null, dinner: null })
 const monthMenus = ref({})
 const showCopyModal = ref(false)
 const dishSelector = ref({ show: false, mealType: null })
+const dishSearchQuery = ref('')
 
 // Constants
 const weekDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
@@ -365,8 +382,17 @@ const formatSelectedDate = computed(() => {
 
 const availableDishes = computed(() => {
   const mealType = dishSelector.value.mealType
+  const query = dishSearchQuery.value.toLowerCase().trim()
   if (!mealType) return []
-  return [...dishStore.dishes].sort((a, b) => {
+  let dishes = [...dishStore.dishes]
+  
+  // Filter by search query
+  if (query) {
+    dishes = dishes.filter(dish => dish.name.toLowerCase().includes(query))
+  }
+  
+  // Sort by priority
+  return dishes.sort((a, b) => {
     const aPriority = a.meal_type === mealType ? 0 : a.meal_type === 'both' ? 1 : 2
     const bPriority = b.meal_type === mealType ? 0 : b.meal_type === 'both' ? 1 : 2
     return aPriority - bPriority
@@ -428,7 +454,10 @@ function closeDayDetail() {
 }
 
 function selectDish(mealType) { dishSelector.value = { show: true, mealType } }
-function closeDishSelector() { dishSelector.value = { show: false, mealType: null } }
+function closeDishSelector() { 
+  dishSelector.value = { show: false, mealType: null }
+  dishSearchQuery.value = ''
+}
 
 async function copyFromPreviousMonth() {
   const prevYear = currentMonth.value === 0 ? currentYear.value - 1 : currentYear.value
@@ -793,18 +822,81 @@ onMounted(async () => {
   border-radius: 24px 24px 0 0;
   padding: 20px;
   animation: slideUp 0.25s ease-out;
+  height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content .dish-selector-header {
+  flex-shrink: 0;
+}
+
+.modal-content .dish-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+@keyframes slideUp {
+  from { 
+    transform: translateY(100%);
+  }
+  to { 
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.modal-header h2 { font-size: 1.25rem; font-weight: 600; color: var(--on-surface); margin: 0; }
+.modal-header .header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 { 
+  font-size: 1.25rem; 
+  font-weight: 600; 
+  color: var(--on-surface); 
+  margin: 0; 
+}
+
+.modal-header .search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface-container);
+  border-radius: var(--radius-sm);
+}
+
+.modal-header .search-box svg {
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.modal-header .search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  color: var(--on-surface);
+}
+
+.modal-header .search-input:focus {
+  outline: none;
+}
+
+.modal-header .search-input::placeholder {
+  color: var(--on-surface-variant);
+}
 
 .modal-close {
   width: 36px;
@@ -895,7 +987,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 50vh;
   overflow-y: auto;
 }
 
