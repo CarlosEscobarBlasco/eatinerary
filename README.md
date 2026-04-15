@@ -1,12 +1,14 @@
-# Mealendar - Tu Menú Semanal
+# Mealendar
 
 Aplicación móvil para planificar tu menú semanal. Gestiona un repertorio de platos y asígnalos a días específicos para comida y cena.
 
 ## Características
 
+- **Autenticación**: Login con email y contraseña
 - **Gestionar repertorio de platos** con imagen, ingredientes y notas
 - **Subir imágenes** desde el dispositivo
 - **Selector de tipo de comida** (comida, cena o ambos)
+- **Filtro de búsqueda** en el listado de platos
 - **Calendario mensual** con dos vistas:
   - **Vista de listado**: todos los días del mes, agrupados por semanas
   - **Vista de cuadrícula**: calendario tradicional
@@ -15,13 +17,18 @@ Aplicación móvil para planificar tu menú semanal. Gestiona un repertorio de p
 - **Navegación entre meses** con flechas y swipe
 - **Botón "Hoy"** para ir al mes actual con scroll automático
 - **Día actual marcado** con banda naranja a la izquierda
+- **Filtro al seleccionar plato** en el calendario
+- **Borrado en cascade** al eliminar platos
 
 ## Interfaz
 
 - **Color primario**: naranja (#e67300)
-- **Semanas تبدأ lunes y terminan domingo** (7 días)
+- **Semanas начинают lunes y terminan domingo** (7 días)
 - **Iconos planos** en toda la aplicación (sin emojis)
 - **Botón de enlace** en tarjetas de platos cuando tienen URL
+- **Platos sin imagen**: muestran la inicial del nombre
+- **Modales** se abren desde abajo
+- **Filtro de búsqueda** en selector de platos
 
 ## Configuración de Supabase
 
@@ -36,7 +43,8 @@ Sigue estos pasos en orden para configurar Supabase desde cero.
 ### Paso 2: Configurar Base de Datos
 
 1. En Supabase, ve a **SQL Editor** en el menú lateral
-2. Copia y ejecuta este script:
+2. Habilita el provider de Email en **Authentication > Providers**
+3. Copia y ejecuta este script:
 
 ```sql
 -- ============================================
@@ -72,20 +80,20 @@ CREATE TABLE daily_menu (
 ALTER TABLE dishes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_menu ENABLE ROW LEVEL SECURITY;
 
--- Políticas para dishes (acceso total para todos)
-CREATE POLICY "Anyone can read dishes" ON dishes FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert dishes" ON dishes FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update dishes" ON dishes FOR UPDATE USING (true);
-CREATE POLICY "Anyone can delete dishes" ON dishes FOR DELETE USING (true);
+-- Políticas para dishes (acceso total para usuarios autenticados)
+CREATE POLICY "Authenticated can read dishes" ON dishes FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can insert dishes" ON dishes FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can update dishes" ON dishes FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can delete dishes" ON dishes FOR DELETE USING (auth.role() = 'authenticated');
 
--- Políticas para daily_menu (acceso total para todos)
-CREATE POLICY "Anyone can read daily_menu" ON daily_menu FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert daily_menu" ON daily_menu FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update daily_menu" ON daily_menu FOR UPDATE USING (true);
-CREATE POLICY "Anyone can delete daily_menu" ON daily_menu FOR DELETE USING (true);
+-- Políticas para daily_menu (acceso total para usuarios autenticados)
+CREATE POLICY "Authenticated can read daily_menu" ON daily_menu FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can insert daily_menu" ON daily_menu FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can update daily_menu" ON daily_menu FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated can delete daily_menu" ON daily_menu FOR DELETE USING (auth.role() = 'authenticated');
 ```
 
-3. Verifica que las tablas se crearon en **Table Editor**
+4. Verifica que las tablas se crearon en **Table Editor**
 
 ### Paso 3: Configurar Storage para Imágenes
 
@@ -96,31 +104,26 @@ CREATE POLICY "Anyone can delete daily_menu" ON daily_menu FOR DELETE USING (tru
 3. Ve a la pestaña **Policies** del bucket
 4. Añade estas políticas (una por una):
 
-**Política 1 - Lectura (PUBLIC):**
 ```sql
 CREATE POLICY "Public can read images" ON storage.objects
 FOR SELECT USING (bucket_id = 'dish-images');
-```
 
-**Política 2 - Inserción (PUBLIC):**
-```sql
 CREATE POLICY "Public can insert images" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'dish-images');
-```
 
-**Política 3 - Actualización (PUBLIC):**
-```sql
 CREATE POLICY "Public can update images" ON storage.objects
 FOR UPDATE USING (bucket_id = 'dish-images');
-```
 
-**Política 4 - Eliminación (PUBLIC):**
-```sql
 CREATE POLICY "Public can delete images" ON storage.objects
 FOR DELETE USING (bucket_id = 'dish-images');
 ```
 
-### Paso 4: Configurar Variables de Entorno
+### Paso 4: Configurar URL de Redirección
+
+1. Ve a **Authentication > URL Configuration**
+2. Añade tu URL de desarrollo (ej: `http://localhost:5173`)
+
+### Paso 5: Configurar Variables de Entorno
 
 1. Copia `.env.example` a `.env`:
 ```bash
@@ -135,7 +138,7 @@ VITE_SUPABASE_ANON_KEY=tu-anon-key
 
 (Encontrarás estas credenciales en: **Settings > API**)
 
-### Paso 5: Ejecutar la App
+### Paso 6: Ejecutar la App
 
 ```bash
 npm run dev
@@ -143,18 +146,25 @@ npm run dev
 
 ## Cómo Usar la App
 
+### Login
+
+1. Introduce tu email y contraseña
+2. Pulsa **Entrar**
+3. Si no tienes cuenta, el administrador de Supabase debe crearte una en **Authentication > Users**
+
 ### Añadir Platos
 
 1. Ve a **Mis Platos**
-2. Pulsa el botón **+**
-3. Rellena los campos:
+2. Usa el buscador para filtrar platos
+3. Pulsa el botón **+**
+4. Rellena los campos:
    - **Nombre**: obligatorio
    - **Imagen**: opcional, pulsa para subir desde tu dispositivo
    - **Ingredientes**: lista separada por comas
    - **Tipo**: comida, cena o ambos
    - **Link**: url opcional
    - **Notas**: texto libre
-4. Pulsa **Guardar**
+5. Pulsa **Guardar**
 
 ### Calendario
 
@@ -162,35 +172,41 @@ npm run dev
 2. **Toggle Listado/Cuadrícula**: cambia entre vista de lista y calendario tradicional
 3. **Navegación**: usa las flechas o haz swipe horizontal
 4. **Ver día**: pulsa en cualquier día para ver/editar platos
-5. **Copiar mes anterior**: copia los platos del mes anterior por día de la semana
-6. **Hoy**: botón para volver al mes actual con scroll al día de hoy
+5. **Filtro al buscar plato**: escribe para filtrar los platos disponibles
+6. **Copiar mes anterior**: copia los platos del mes anterior por día de la semana
+7. **Hoy**: botón para volver al mes actual con scroll al día de hoy
 
-#### Mejoras de Vista de Listado
+### Seleccionar Plato
 
-- Las semanas siempre tienen 7 días (lunes a domingo)
-- Toggle para mostrar/ocultar fines de semana
-- Scroll automático al día actual al cargar
-- Scroll al día actual al pulsar botón "Hoy"
+1. Pulsa en un día del calendario
+2. Pulsa **+ Añadir** en Comida o Cena
+3. Usa el buscador para filtrar
+4. Pulsa en el plato desired
 
 ## Estructura del Proyecto
 
 ```
 mealendar/
 ├── src/
+│   ├── components/
+│   │   └── BottomNav.vue
 │   ├── lib/
 │   │   ├── router/index.js
 │   │   └── supabase.js
 │   ├── stores/
+│   │   ├── auth.js
 │   │   ├── dishes.js
 │   │   └── dailyMenu.js
 │   ├── views/
+│   │   ├── auth/LoginView.vue
 │   │   ├── calendar/CalendarView.vue
 │   │   ├── dishes/DishesView.vue
 │   │   └── home/HomeView.vue
 │   ├── App.vue
 │   ├── main.js
-│   ├── style.css
-│   └── router.js
+│   └── style.css
+├── public/
+│   └── logo.png
 ├── .env
 ├── .env.example
 ├── index.html
@@ -198,13 +214,26 @@ mealendar/
 └── vite.config.js
 ```
 
-## scripts
+## Scripts
 
 - `npm run dev`: Servidor de desarrollo
 - `npm run build`: Compilar producción
 - `npm run preview`: Previsualizar producción
 
 ## Changelog
+
+### v1.2.0
+- Login con autenticación
+- Filtro de búsqueda en listado de platos
+- Filtro de búsqueda al seleccionar plato
+- "Almuerzo" renombrado a "Comida"
+- Modal de selección de plato con tamaño fijo
+- Platos sin imagen muestran inicial
+- Scroll independiente en modales
+- Filtro siempre visible al buscar platos
+- Logo en login y favicon
+- Eliminación de logout del footer
+- Modales se abren desde abajo
 
 ### v1.1.0
 - Vista de cuadrícula con calendario tradicional
