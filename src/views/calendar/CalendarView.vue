@@ -1,116 +1,123 @@
 <template>
   <div class="calendar-view">
-    <!-- Header -->
-    <header class="calendar-header">
-      <!-- Title -->
-      <h1 class="title">{{ monthNames[currentMonth] + ' ' + currentYear }}</h1>
-      
-      <!-- Navigation between months -->
-      <div class="nav-row">
-        <button class="nav-btn" @click="prevMonth">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
+    <!-- Header Section -->
+    <div class="header-section">
+      <header class="calendar-header">
+        <!-- Title -->
+        <h1 class="title">{{ monthNames[currentMonth] + ' ' + currentYear }}</h1>
         
-        <button class="today-btn" @click="goToToday">Hoy</button>
-        
-        <button class="nav-btn" @click="nextMonth">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
-      
-      <!-- View Toggle: List/Grid -->
-      <div class="view-toggle">
-        <button class="toggle-btn" :class="{ active: isListView }" @click="isListView = true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-          </svg>
-        </button>
-        <button class="toggle-btn" :class="{ active: !isListView }" @click="isListView = false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- Content: List View (scrollable) -->
-    <div v-if="isListView" class="calendar-content-list">
-      <div v-for="week in monthWeeks" :key="week.start" class="week-group">
-        <div class="week-header">
-          {{ getWeekLabel(week.days) }}
+        <!-- Navigation between months -->
+        <div class="nav-row">
+          <button class="nav-btn" @click="prevMonth">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          
+          <button class="today-btn" @click="goToToday">Hoy</button>
+          
+          <button class="nav-btn" @click="nextMonth">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         </div>
         
-        <template v-for="day in week.days.filter(d => d && !d.isWeekend)" :key="day?.date">
-          <div 
-            v-if="day"
-            class="day-row"
-            :class="{ 'today': day.isToday, 'weekend': day.isWeekend }"
-            :ref="el => { if (day?.isToday) todayRow = el }"
-            @click="selectDate(day)"
-          >
-            <div class="day-info">
-              <span class="day-name">{{ day.dayName }}</span>
-              <span class="day-number">{{ day.day }}</span>
-            </div>
-            
-            <div class="day-meals">
-              <div v-if="day.hasLunch" class="meal-item">
-                <span class="meal-name">{{ day.lunchName }}</span>
-              </div>
-              <div v-else class="meal-item empty">
-                <span class="meal-empty">Sin planificar</span>
-              </div>
-              
-              <div v-if="day.hasDinner" class="meal-item">
-                <span class="meal-name">{{ day.dinnerName }}</span>
-              </div>
-              <div v-else class="meal-item empty">
-                <span class="meal-empty">Sin planificar</span>
-              </div>
-            </div>
-            
-            <div class="day-arrow">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </div>
-          </div>
-        </template>
-      </div>
+        <!-- View Toggle: List/Grid -->
+        <div class="view-toggle">
+          <button class="toggle-btn" :class="{ active: isListView }" @click="isListView = true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+          <button class="toggle-btn" :class="{ active: !isListView }" @click="isListView = false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+        </div>
+      </header>
     </div>
 
-    <!-- Content: Grid View (not scrollable, fits in screen) -->
-    <div v-else class="calendar-content-grid">
-      <div class="weekdays-header">
-        <span v-for="day in weekDays" :key="day" class="weekday">{{ day }}</span>
-      </div>
-      
-      <div class="calendar-days">
-        <div 
-          v-for="day in calendarDays" 
-          :key="day.date"
-          class="calendar-day"
-          :class="{ 'other-month': !day.currentMonth, 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
-          @click="selectDate(day)"
-        >
-          <span class="day-number">{{ day.day }}</span>
-          <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator">
-            {{ day.hasLunch && day.hasDinner ? 'A+C' : day.hasLunch ? 'A' : 'C' }}
-          </span>
+    <!-- Content Section -->
+    <div class="content-section">
+      <div class="calendar-content-wrapper">
+        <!-- List View (scrollable) -->
+        <div v-if="isListView" class="calendar-content-list">
+          <div v-for="week in monthWeeks" :key="week.start" class="week-group">
+            <div class="week-header">
+              {{ getWeekLabel(week.days) }}
+            </div>
+            
+            <template v-for="day in week.days.filter(d => d && !d.isWeekend)" :key="day?.date">
+              <div 
+                v-if="day"
+                class="day-row"
+                :class="{ 'today': day.isToday, 'weekend': day.isWeekend }"
+                :ref="el => { if (day?.isToday) todayRow = el }"
+                @click="selectDate(day)"
+              >
+                <div class="day-info">
+                  <span class="day-name">{{ day.dayName }}</span>
+                  <span class="day-number">{{ day.day }}</span>
+                </div>
+                
+                <div class="day-meals">
+                  <div v-if="day.hasLunch" class="meal-item">
+                    <span class="meal-name">{{ day.lunchName }}</span>
+                  </div>
+                  <div v-else class="meal-item empty">
+                    <span class="meal-empty">Sin planificar</span>
+                  </div>
+                  
+                  <div v-if="day.hasDinner" class="meal-item">
+                    <span class="meal-name">{{ day.dinnerName }}</span>
+                  </div>
+                  <div v-else class="meal-item empty">
+                    <span class="meal-empty">Sin planificar</span>
+                  </div>
+                </div>
+                
+                <div class="day-arrow">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Content: Grid View (not scrollable, fits in screen) -->
+        <div v-else class="calendar-content-grid">
+        <div class="weekdays-header">
+          <span v-for="day in weekDays" :key="day" class="weekday">{{ day }}</span>
+        </div>
+        
+        <div class="calendar-days">
+          <div 
+            v-for="day in calendarDays" 
+            :key="day.date"
+            class="calendar-day"
+            :class="{ 'other-month': !day.currentMonth, 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
+            @click="selectDate(day)"
+          >
+            <span class="day-number">{{ day.day }}</span>
+            <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
+              {{ getMealIndicator(day) }}
+            </span>
+          </div>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Day Detail Modal -->
@@ -342,6 +349,27 @@ const formatSelectedDate = computed(() => {
   return `${dayNamesFull[date.getDay()]} ${date.getDate()}`
 })
 
+function getMealIndicator(day) {
+  const menu = monthMenus.value[day.date] || {}
+  if (menu.lunch && menu.dinner) {
+    // If there's space, show full names
+    return day.day <= 15 ? `${menu.lunch?.name?.substring(0, 6) || 'A'} + ${menu.dinner?.name?.substring(0, 6) || 'C'}` : 'A+C'
+  }
+  const name = menu.lunch?.name || menu.dinner?.name
+  if (name && day.day <= 15) {
+    return name.substring(0, 8)
+  }
+  return menu.lunch ? 'A' : 'C'
+}
+
+function getMealNames(day) {
+  const menu = monthMenus.value[day.date] || {}
+  const meals = []
+  if (menu.lunch) meals.push(`Comida: ${menu.lunch.name}`)
+  if (menu.dinner) meals.push(`Cena: ${menu.dinner.name}`)
+  return meals.join('\n') || ''
+}
+
 const availableDishes = computed(() => {
   const mealType = dishSelector.value.mealType
   const query = dishSearchQuery.value.toLowerCase().trim()
@@ -474,17 +502,55 @@ onMounted(async () => {
   user-select: none;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Header - fixed at top */
-.calendar-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+/* Main layout: flex column with full height */
+.calendar-view {
+  height: 100vh;
+  background: var(--surface);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Header section - fixed, no shrink */
+.calendar-view .header-section {
+  flex-shrink: 0;
   padding: 12px 16px 8px;
   background: var(--surface);
-  z-index: 100;
+  box-sizing: border-box;
+}
+
+/* Content section - takes remaining space */
+.calendar-view .content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 0;
+}
+
+.calendar-view .calendar-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Header - part of header section */
+.calendar-header {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .title {
@@ -550,12 +616,24 @@ onMounted(async () => {
   color: var(--on-primary);
 }
 
-/* List Content - scrollable */
+/* Content wrapper */
+.calendar-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 16px 16px;
+}
+
+/* List Content - scrollable inside wrapper */
 .calendar-content-list {
   flex: 1;
-  margin-top: 160px;
-  padding: 0 16px 100px;
   overflow-y: auto;
+  padding: 0;
+}
+
+.calendar-content-list .week-group {
+  margin-bottom: 4px;
 }
 
 .calendar-content-list .week-group {
@@ -630,11 +708,55 @@ onMounted(async () => {
 
 .day-arrow { color: var(--on-surface-variant); }
 
-/* Grid Content - not scrollable, fits in screen */
+/* Grid Content - no scroll, fits in viewport */
 .calendar-content-grid {
   flex: 1;
-  margin-top: 160px;
-  padding: 0 16px 100px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.calendar-content-grid .weekdays-header,
+.calendar-content-grid .calendar-days {
+  min-width: 0;
+}
+
+.calendar-content-grid .calendar-days {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+/* Wide content on medium+ screens */
+@media (min-width: 768px) {
+  .calendar-view {
+    max-width: none;
+  }
+  
+  .calendar-view .header-section {
+    padding: 12px 32px 8px;
+  }
+  
+  .calendar-view .content-section {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  .calendar-content-wrapper {
+    padding: 0 32px 16px;
+    max-width: none;
+  }
+  
+  .calendar-content-list {
+    padding: 0 32px;
+  }
+  
+  .calendar-content-grid {
+    padding: 0 32px;
+  }
 }
 
 .weekdays-header {
@@ -653,7 +775,7 @@ onMounted(async () => {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 5px;
 }
 
 .calendar-day {
@@ -662,20 +784,35 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 8px;
+  padding: 2px;
+  border-radius: 6px;
   background: var(--surface-container);
   cursor: pointer;
+  overflow: hidden;
 }
 
 .calendar-day.other-month { opacity: 0.3; }
 .calendar-day.today { background: var(--primary-container); border: 2px solid var(--primary); }
 .calendar-day.has-meals { background: var(--surface-container-low); }
 
-.calendar-day .day-number { font-size: 0.85rem; font-weight: 500; color: var(--on-surface); }
+.calendar-day .day-number { font-size: 0.75rem; font-weight: 500; color: var(--on-surface); }
 .calendar-day.today .day-number { color: var(--on-primary-container); font-weight: 700; }
 
-.meal-indicator { font-size: 0.65rem; font-weight: 600; color: var(--primary); margin-top: 2px; }
+.meal-indicator {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 1px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meal-indicator:hover {
+  white-space: normal;
+  word-break: break-word;
+}
 
 .modal-overlay {
   position: fixed;

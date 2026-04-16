@@ -49,6 +49,12 @@ import { RouterLink } from 'vue-router'
   flex-direction: column;
 }
 
+.home .content-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 .home-header {
   text-align: center;
   padding: 40px 0 48px;
@@ -158,5 +164,12 @@ import { RouterLink } from 'vue-router'
   background: var(--surface-container);
   padding: 16px;
   border-radius: var(--radius-sm);
+}
+
+/* Wide content on medium+ screens */
+@media (min-width: 768px) {
+  .home .content-wrapper {
+    max-width: 600px;
+  }
 }
 </style>

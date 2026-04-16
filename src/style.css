@@ -82,6 +82,14 @@ body {
   background: var(--surface);
 }
 
+/* Full width on medium+ screens */
+@media (min-width: 768px) {
+  #app {
+    max-width: none;
+    margin: 0;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
