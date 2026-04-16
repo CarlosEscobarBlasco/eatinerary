@@ -207,6 +207,12 @@
               placeholder="Buscar..."
               class="search-input"
             />
+            <button v-if="dishSearchQuery" type="button" class="search-clear" @click="dishSearchQuery = ''">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
         
@@ -1273,6 +1279,25 @@ onUnmounted(() => {
 
 .modal-header .search-input::placeholder {
   color: var(--on-surface-variant);
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-clear:hover {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .modal-close {
