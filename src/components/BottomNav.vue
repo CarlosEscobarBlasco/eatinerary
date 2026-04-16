@@ -1,8 +1,9 @@
 <template>
   <!-- Sidebar Navigation for medium+ screens -->
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" :class="{ collapsed: isCollapsed }">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="Mealendar" class="brand-logo" />
+      <img v-if="!isCollapsed" src="/logo.png" alt="Mealendar" class="brand-logo" />
+      <img v-else src="/logo.png" alt="Mealendar" class="brand-logo-collapsed" />
     </div>
     <div class="sidebar-menu">
       <RouterLink to="/" class="sidebar-item" :class="{ active: $route.path === '/' }">
@@ -12,7 +13,7 @@
           <line x1="8" y1="2" x2="8" y2="6"></line>
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
-        <span class="sidebar-label">Calendario</span>
+        <span v-if="!isCollapsed" class="sidebar-label">Calendario</span>
       </RouterLink>
       
       <RouterLink to="/dishes" class="sidebar-item" :class="{ active: $route.path === '/dishes' }">
@@ -21,9 +22,15 @@
           <path d="M7 2v20"></path>
           <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
         </svg>
-        <span class="sidebar-label">Platos</span>
+        <span v-if="!isCollapsed" class="sidebar-label">Platos</span>
       </RouterLink>
     </div>
+    <button class="collapse-btn" @click="toggleSidebar" :title="isCollapsed ? 'Expandir' : 'Colapsar'">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline v-if="isCollapsed" points="9 18 15 12 9 6"></polyline>
+        <polyline v-else points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
   </nav>
 
   <!-- Bottom Navigation for mobile -->
@@ -51,6 +58,28 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
+import { ref, watch } from 'vue'
+
+const isCollapsed = ref(true)
+
+function toggleSidebar() {
+  isCollapsed.value = !isCollapsed.value
+  // Emit event for App.vue to adjust padding
+  window.dispatchEvent(new CustomEvent('sidebar-collapse', { 
+    detail: { collapsed: isCollapsed.value } 
+  }))
+  // Also emit event for calendar to update aspect ratio
+  window.dispatchEvent(new CustomEvent('sidebar-expanded', { 
+    detail: { expanded: !isCollapsed.value } 
+  }))
+}
+
+// Listen for resize to reset collapsed state on mobile
+window.addEventListener('resize', () => {
+  if (window.innerWidth < 768) {
+    isCollapsed.value = false
+  }
+})
 </script>
 
 <style scoped>
@@ -109,6 +138,12 @@ import { RouterLink } from 'vue-router'
   flex-direction: column;
   z-index: 100;
   padding: 24px 16px;
+  transition: width 0.3s ease;
+}
+
+.sidebar-nav.collapsed {
+  width: 72px;
+  padding: 24px 12px;
 }
 
 .sidebar-brand {
@@ -125,10 +160,39 @@ import { RouterLink } from 'vue-router'
   object-fit: contain;
 }
 
+.brand-logo-collapsed {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: auto;
+  align-self: flex-end;
+}
+
+.collapse-btn:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
 .sidebar-menu {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1;
 }
 
 .sidebar-item {
@@ -145,6 +209,16 @@ import { RouterLink } from 'vue-router'
   background: none;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.sidebar-nav.collapsed .sidebar-item {
+  justify-content: center;
+  padding: 14px;
+}
+
+.sidebar-nav.collapsed .sidebar-brand {
+  margin-bottom: 24px;
 }
 
 .sidebar-item.active {

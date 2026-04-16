@@ -114,7 +114,11 @@
               v-if="day"
               :key="day.date"
               class="calendar-day"
-              :class="{ 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
+              :class="{ 
+                'today': day.isToday, 
+                'has-meals': day.hasLunch || day.hasDinner,
+                'expanded': sidebarExpanded 
+              }"
               @click="selectDate(day)"
             >
               <span class="day-number">{{ day.day }}</span>
@@ -243,7 +247,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useDailyMenuStore } from '../../stores/dailyMenu'
 import { useDishStore } from '../../stores/dishes'
 
@@ -252,6 +256,13 @@ const dishStore = useDishStore()
 
 // View state
 const isListView = ref(true)
+
+// Sidebar state
+const sidebarExpanded = ref(false)
+
+function handleSidebarExpanded(e) {
+  sidebarExpanded.value = e.detail.expanded
+}
 
 // Date state
 const today = new Date()
@@ -405,15 +416,15 @@ function getMealLines(day) {
   const menu = monthMenus.value[day.date] || {}
   if (menu.lunch && menu.dinner) {
     return [
-      { text: menu.lunch.name ? menu.lunch.name.substring(0, 15) : 'Almuerzo' },
-      { text: menu.dinner.name ? menu.dinner.name.substring(0, 15) : 'Cena' }
+      { text: menu.lunch.name ? menu.lunch.name : 'Comida' },
+      { text: menu.dinner.name ? menu.dinner.name : 'Cena' }
     ]
   }
   if (menu.lunch) {
-    return [{ text: menu.lunch.name ? menu.lunch.name.substring(0, 8) : 'Almuerzo' }]
+    return [{ text: menu.lunch.name ? menu.lunch.name : 'Comida' }]
   }
   if (menu.dinner) {
-    return [{ text: menu.dinner.name ? menu.dinner.name.substring(0, 8) : 'Cena' }]
+    return [{ text: menu.dinner.name ? menu.dinner.name : 'Cena' }]
   }
   return []
 }
@@ -652,6 +663,13 @@ onMounted(async () => {
       todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, 100)
+  
+  // Listen for sidebar expand/collapse
+  window.addEventListener('sidebar-expanded', handleSidebarExpanded)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('sidebar-expanded', handleSidebarExpanded)
 })
 </script>
 
@@ -968,7 +986,7 @@ onMounted(async () => {
 }
 
 .calendar-day {
-  aspect-ratio: 1.8;
+  aspect-ratio: 2.5;
   display: flex;
   flex-direction: column;
   padding: 3px;
@@ -977,6 +995,11 @@ onMounted(async () => {
   cursor: pointer;
   overflow: hidden;
   position: relative;
+  transition: aspect-ratio 0.3s ease;
+}
+
+.calendar-day.expanded {
+  aspect-ratio: 1.8;
 }
 
 .calendar-day.empty {

@@ -7,6 +7,7 @@ const route = useRoute()
 const showBottomNav = ref(true)
 
 const isLargeScreen = ref(false)
+const sidebarCollapsed = ref(true)
 
 onMounted(() => {
   window.addEventListener('hide-bottom-nav', () => {
@@ -22,9 +23,19 @@ onMounted(() => {
   }
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
+  
+  // Listen for sidebar collapse
+  window.addEventListener('sidebar-collapse', (e) => {
+    sidebarCollapsed.value = e.detail.collapsed
+  })
 })
 
 const hasSidebar = computed(() => isLargeScreen.value)
+
+const sidebarWidth = computed(() => {
+  if (!isLargeScreen.value) return '0px'
+  return sidebarCollapsed.value ? '72px' : '240px'
+})
 </script>
 
 <template>
@@ -51,7 +62,8 @@ const hasSidebar = computed(() => isLargeScreen.value)
 .app-container.with-sidebar {
   max-width: none;
   margin: 0;
-  padding-left: 240px;
+  padding-left: v-bind(sidebarWidth);
+  transition: padding-left 0.3s ease;
 }
 
 @media (min-width: 768px) {

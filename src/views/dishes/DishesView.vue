@@ -89,10 +89,11 @@
           <div class="header-top">
             <h2>{{ editingDish ? 'Editar Plato' : 'Nuevo Plato' }}</h2>
             <div class="header-actions">
-              <button v-if="editingDish" class="delete-btn" @click="deleteDish">
+              <button type="button" class="save-btn" @click="saveDish">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
               </button>
               <button class="modal-close" @click="closeForm">
@@ -225,12 +226,8 @@
             ></textarea>
           </div>
 
-          <button 
-            type="submit" 
-            class="submit-btn" 
-            :disabled="dishStore.loading || uploading"
-          >
-            {{ dishStore.loading || uploading ? 'Guardando...' : 'Guardar plato' }}
+          <button v-if="editingDish" type="button" class="delete-btn" @click="deleteDish">
+            Eliminar plato
           </button>
         </form>
       </div>
@@ -847,16 +844,39 @@ onMounted(() => {
 }
 
 .delete-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--error-container);
+  color: var(--on-error-container);
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.delete-btn:hover {
+  background: var(--error);
+  color: var(--on-error);
+}
+
+.save-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--error-container);
+  background: var(--primary);
+  color: var(--on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   border: none;
   cursor: pointer;
+}
+
+.save-btn:hover {
+  background: var(--primary-fixed);
 }
 
 .dish-form {
