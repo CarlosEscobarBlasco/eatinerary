@@ -880,8 +880,8 @@ onUnmounted(() => {
 }
 
 .nav-btn {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--surface-container);
   display: flex;
@@ -893,11 +893,11 @@ onUnmounted(() => {
 }
 
 .today-btn {
-  padding: 6px 12px;
+  padding: 8px 16px;
   background: var(--primary);
   color: var(--on-primary);
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
