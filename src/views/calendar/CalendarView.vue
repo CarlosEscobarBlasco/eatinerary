@@ -54,7 +54,13 @@
         <div v-if="isListView" class="calendar-content-list">
           <div v-for="week in monthWeeks" :key="week.start" class="week-group">
             <div class="week-header">
-              {{ getWeekLabel(week.days) }}
+              <span class="week-label">{{ getWeekLabel(week.days) }}</span>
+              <button class="copy-week-btn" @click="openCopyWeekModal(week)" title="Copiar de otra semana">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
             </div>
             
             <template v-for="day in week.days.filter(d => d && !d.isWeekend)" :key="day?.date">
@@ -203,6 +209,36 @@
         <button class="modal-cancel-btn" @click="closeDishSelector">Cancelar</button>
       </div>
     </div>
+
+    <!-- Copy Week Modal -->
+    <div v-if="copyWeekModal.show" class="modal-overlay" @click.self="closeCopyWeekModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="header-top">
+            <h2>Copiar semana de...</h2>
+            <button class="modal-close" @click="closeCopyWeekModal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="weeks-list">
+          <div 
+            v-for="week in previousWeeks" 
+            :key="week.label" 
+            class="week-option"
+            @click="copyFromPastWeek(week)"
+          >
+            {{ week.label }}
+          </div>
+        </div>
+        
+        <button class="modal-cancel-btn" @click="closeCopyWeekModal">Cancelar</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -228,6 +264,10 @@ const dayMenu = ref({ lunch: null, dinner: null })
 const monthMenus = ref({})
 const dishSelector = ref({ show: false, mealType: null })
 const dishSearchQuery = ref('')
+
+// Copy week modal state
+const copyWeekModal = ref({ show: false, week: null })
+const previousWeeks = ref([])
 
 // Constants
 const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -293,6 +333,7 @@ const monthWeeks = computed(() => {
     currentMonthDays.push({
       day,
       date: dateStr,
+      dateObj: date,
       currentMonth: true,
       isToday,
       hasLunch: !!menu.lunch,
@@ -301,7 +342,7 @@ const monthWeeks = computed(() => {
       dinnerName: menu.dinner?.name || null,
       dayName: dayNamesShort[idx],
       isWeekend: dow === 0 || dow === 6,
-      dayOfWeek: dow
+      dayOfWeek: dow === 0 ? 7 : dow
     })
   }
   
@@ -458,6 +499,108 @@ function selectDish(mealType) { dishSelector.value = { show: true, mealType } }
 function closeDishSelector() { 
   dishSelector.value = { show: false, mealType: null }
   dishSearchQuery.value = ''
+}
+
+function openCopyWeekModal(week) {
+  copyWeekModal.value = { show: true, week }
+  previousWeeks.value = []
+  
+  // Find the start date of the selected week
+  const weekStart = week.days.find(d => d && d.dayOfWeek === 1)?.dateObj || new Date(currentYear.value, currentMonth.value, 1)
+  if (!weekStart) return
+  
+  // Get last 5 weeks before this week
+  for (let i = 1; i <= 5; i++) {
+    const daysToSubtract = i * 7
+    const pastWeekStart = new Date(weekStart)
+    pastWeekStart.setDate(pastWeekStart.getDate() - daysToSubtract)
+    
+    const pastWeekEnd = new Date(pastWeekStart)
+    pastWeekEnd.setDate(pastWeekEnd.getDate() + 4) // Get Friday
+    
+    const year = pastWeekStart.getFullYear()
+    const startDay = pastWeekStart.getDate()
+    const endDay = pastWeekEnd.getDate()
+    
+    previousWeeks.value.push({
+      label: `${monthNames[pastWeekStart.getMonth()]} ${startDay}-${endDay}`,
+      startDate: pastWeekStart,
+      year,
+      month: pastWeekStart.getMonth()
+    })
+  }
+}
+
+function closeCopyWeekModal() {
+  copyWeekModal.value = { show: false, week: null }
+  previousWeeks.value = []
+}
+
+async function copyFromPastWeek(pastWeek) {
+  if (!copyWeekModal.value.week || !pastWeek) return
+  
+  const targetWeek = copyWeekModal.value.week
+  const pastStartDate = pastWeek.startDate
+  
+  // Get menus from the past week (5 days: Monday to Friday)
+  const pastMenus = {}
+  const startDate = new Date(pastStartDate)
+  for (let i = 0; i < 5; i++) {
+    const date = new Date(startDate)
+    date.setDate(date.getDate() + i)
+    const dateStr = formatDate(date)
+    pastMenus[i] = { date: dateStr }
+  }
+  
+  // Fetch menus from the past week dates
+  const pastStartStr = formatDate(startDate)
+  const pastEndDate = new Date(startDate)
+  pastEndDate.setDate(pastEndDate.getDate() + 4)
+  const pastEndStr = formatDate(pastEndDate)
+  
+  await dailyMenuStore.fetchDailyMenus(pastStartStr, pastEndStr)
+  
+  // Create a map of past menus by day of week
+  const pastMenuMap = {}
+  for (const menu of dailyMenuStore.dailyMenus) {
+    const menuDate = new Date(menu.date + 'T00:00:00')
+    const dow = menuDate.getDay()
+    const adjustedDow = dow === 0 ? 7 : dow - 1 // 0 = Monday, 4 = Friday
+    pastMenuMap[adjustedDow] = {
+      lunch: Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes,
+      meal_type: menu.meal_type
+    }
+  }
+  
+  // Copy to target week
+  for (let i = 0; i < 5; i++) {
+    const targetDay = targetWeek.days.find(d => d && d.dayOfWeek === i + 1)
+    if (!targetDay || !targetDay.date) continue
+    
+    const pastMenu = pastMenuMap[i]
+    if (!pastMenu) continue
+    
+    const targetDateStr = targetDay.date
+    
+    // Copy lunch
+    if (pastMenu.lunch) {
+      await dailyMenuStore.setDishForDate(targetDateStr, pastMenu.lunch.id, 'lunch')
+    }
+    
+    // Copy dinner - need to find it
+    const dinnerMenu = dailyMenuStore.dailyMenus.find(m => 
+      m.date === pastMenu.date && m.meal_type === 'dinner'
+    )
+    if (dinnerMenu) {
+      const dinnerDish = Array.isArray(dinnerMenu.dishes) ? dinnerMenu.dishes[0] : dinnerMenu.dishes
+      if (dinnerDish) {
+        await dailyMenuStore.setDishForDate(targetDateStr, dinnerDish.id, 'dinner')
+      }
+    }
+  }
+  
+  await loadMonthMenus()
+  closeCopyWeekModal()
 }
 
 async function assignDish(dishId) {
@@ -658,10 +801,35 @@ onMounted(async () => {
 }
 
 .week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--on-surface-variant);
   padding: 8px 0;
+}
+
+.week-label {
+  flex: 1;
+}
+
+.copy-week-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  border: none;
+  cursor: pointer;
+}
+
+.copy-week-btn:hover {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .day-row {
@@ -872,7 +1040,7 @@ onMounted(async () => {
 .modal-content {
   width: 100%;
   max-width: 480px;
-  background: var(--surface-container-lowest);
+  background: var(--surface);
   border-radius: 24px 24px 0 0;
   padding: 20px;
   animation: slideUp 0.25s ease-out;
@@ -1023,6 +1191,27 @@ onMounted(async () => {
   margin-top: 12px;
   border: none;
   cursor: pointer;
+}
+
+.weeks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.week-option {
+  padding: 14px 16px;
+  background: var(--surface-container);
+  border-radius: 12px;
+  font-weight: 500;
+  color: var(--on-surface);
+  cursor: pointer;
+}
+
+.week-option:hover {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .modal-remove-btn {
