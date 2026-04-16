@@ -54,7 +54,7 @@
         <div v-if="isListView" class="calendar-content-list">
           <div v-for="week in monthWeeks" :key="week.start" class="week-group">
             <div class="week-header">
-              <span class="week-label">{{ getWeekLabel(week.days) }}</span>
+              <span class="week-label">{{ week.label }}</span>
               <button class="copy-week-btn" @click="openCopyWeekModal(week)" title="Copiar de otra semana">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -67,7 +67,11 @@
               <div 
                 v-if="day"
                 class="day-row"
-                :class="{ 'today': day.isToday, 'weekend': day.isWeekend }"
+                :class="{ 
+                  'today': day.isToday, 
+                  'weekend': day.isWeekend,
+                  'other-month': !day.currentMonth
+                }"
                 :ref="el => { if (day?.isToday) todayRow = el }"
                 @click="selectDate(day)"
               >
@@ -117,7 +121,8 @@
               :class="{ 
                 'today': day.isToday, 
                 'has-meals': day.hasLunch || day.hasDinner,
-                'expanded': sidebarExpanded 
+                'expanded': sidebarExpanded,
+                'other-month': !day.currentMonth
               }"
               @click="selectDate(day)"
             >
@@ -300,30 +305,50 @@ const calendarDays = computed(() => {
   const days = []
   const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  const totalDays = lastDay.getDate()
   
-  // Get day of week (0 = Monday, 6 = Sunday)
-  // In JS: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  // Convert to: 0 = Monday, ..., 6 = Sunday
-  let startDayOfWeek = firstDay.getDay()
-  startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
+  // Find first Monday before or on the 1st of the month
+  const firstDayOfWeek = firstDay.getDay() // 0 = Sunday
+  const daysToSkip = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1 // Monday = 1
   
-  // Add empty slots for days before the 1st of month (to start on Monday)
-  for (let i = 0; i < startDayOfWeek; i++) {
-    days.push(null)
-  }
+  // Start from the Monday before the 1st of the month
+  const startDate = new Date(firstDay)
+  startDate.setDate(startDate.getDate() - daysToSkip)
   
-  // Add days of current month only (excluding Saturday and Sunday)
-  for (let day = 1; day <= totalDays; day++) {
-    const date = new Date(currentYear.value, currentMonth.value, day)
-    const dayOfWeek = date.getDay()
-    // Skip Saturday (6) and Sunday (0)
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue
+  // Generate 6 weeks of data (to cover entire month plus padding)
+  for (let weekNum = 0; weekNum < 6; weekNum++) {
+    const weekStart = new Date(startDate)
+    weekStart.setDate(weekStart.getDate() + weekNum * 7)
     
-    const dateStr = formatDate(date)
-    const isToday = day === today.getDate() && currentMonth.value === today.getMonth() && currentYear.value === today.getFullYear()
-    const menu = monthMenus.value[dateStr] || {}
-    days.push({ day, date: dateStr, currentMonth: true, isToday, hasLunch: !!menu.lunch, hasDinner: !!menu.dinner })
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekEnd.getDate() + 4) // Friday
+    
+    // Check if this week has any day in the current month
+    const weekHasCurrentMonth = weekEnd.getMonth() === currentMonth.value || 
+                                 weekStart.getMonth() === currentMonth.value
+    
+    // Only include weeks that touch the current month
+    if (!weekHasCurrentMonth && weekNum > 0) break
+    
+    // Add only Monday to Friday (weekdays)
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(weekStart)
+      date.setDate(date.getDate() + i)
+      
+      const day = date.getDate()
+      const dateStr = formatDate(date)
+      const isCurrentMonth = date.getMonth() === currentMonth.value
+      const isToday = date.toDateString() === today.toDateString()
+      const menu = monthMenus.value[dateStr] || {}
+      
+      days.push({ 
+        day, 
+        date: dateStr, 
+        currentMonth: isCurrentMonth, 
+        isToday, 
+        hasLunch: !!menu.lunch, 
+        hasDinner: !!menu.dinner 
+      })
+    }
   }
 
   return days
@@ -331,70 +356,80 @@ const calendarDays = computed(() => {
 
 const monthWeeks = computed(() => {
   const weeks = []
+  const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
   
   // Nombres de días cortos - siempre de lunes a domingo
   const dayNamesShort = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
   
-  // Get all current month days
-  const currentMonthDays = []
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    const date = new Date(currentYear.value, currentMonth.value, day)
-    const dateStr = formatDate(date)
-    const isToday = day === today.getDate() && currentMonth.value === today.getMonth() && currentYear.value === today.getFullYear()
-    const menu = monthMenus.value[dateStr] || {}
-    const dow = date.getDay() // 0 = domingo, 1 = lunes, ..., 6 = sábado
-    const idx = dow === 0 ? 6 : dow - 1 // Convertir: 0->6, 1->0, 2->1, ..., 6->5
-    currentMonthDays.push({
-      day,
-      date: dateStr,
-      dateObj: date,
-      currentMonth: true,
-      isToday,
-      hasLunch: !!menu.lunch,
-      hasDinner: !!menu.dinner,
-      lunchName: menu.lunch?.name || null,
-      dinnerName: menu.dinner?.name || null,
-      dayName: dayNamesShort[idx],
-      isWeekend: dow === 0 || dow === 6,
-      dayOfWeek: dow === 0 ? 7 : dow
-    })
-  }
+  // Find first Monday before or on the 1st of month
+  const firstDayOfWeek = firstDay.getDay() // 0 = Sunday
+  const daysToSkip = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1 // Monday = 1, so skip to get to Monday
   
-  // Group into weeks starting from Monday (siempre 7 dias por semana)
-  let currentWeek = []
+  // Start from the Monday before the 1st of the month
+  const startDate = new Date(firstDay)
+  startDate.setDate(startDate.getDate() - daysToSkip)
   
-  // Add empty slots for days before the 1st of month (para iniciar en lunes)
-  const firstDayOfWeek = new Date(currentYear.value, currentMonth.value, 1).getDay()
-  const daysToSkip = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
-  for (let i = 0; i < daysToSkip; i++) {
-    currentWeek.push(null)
-  }
-  
-  // Add all days of the month
-  for (const d of currentMonthDays) {
-    currentWeek.push(d)
-    if (currentWeek.length === 7) {
-      // Solo añadir semanas que tengan dias del mes actual
-      const validDays = currentWeek.filter(d => d !== null && d.currentMonth)
-      if (validDays.length > 0) {
-        weeks.push({ days: [...currentWeek] })
-      }
-      currentWeek = []
+  // Get days from previous month to fill first week
+  // Generate 6 weeks of data (to cover entire month plus padding)
+  for (let weekNum = 0; weekNum < 6; weekNum++) {
+    const weekStart = new Date(startDate)
+    weekStart.setDate(weekStart.getDate() + weekNum * 7)
+    
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekEnd.getDate() + 4) // Friday (only weekdays)
+    
+    // Check if this week has any day in the current month
+    const weekHasCurrentMonth = weekEnd.getMonth() === currentMonth.value || 
+                                 weekStart.getMonth() === currentMonth.value
+    
+    // Only include weeks that touch the current month
+    if (!weekHasCurrentMonth && weekNum > 0) break
+    
+    // Build week days (Mon-Fri only)
+    const weekDays = []
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(weekStart)
+      date.setDate(date.getDate() + i)
+      
+      const dateStr = formatDate(date)
+      const isCurrentMonth = date.getMonth() === currentMonth.value
+      const isToday = date.toDateString() === today.toDateString()
+      const menu = monthMenus.value[dateStr] || {}
+      const dow = date.getDay()
+      
+      weekDays.push({
+        day: date.getDate(),
+        date: dateStr,
+        dateObj: date,
+        currentMonth: isCurrentMonth,
+        isToday,
+        hasLunch: !!menu.lunch,
+        hasDinner: !!menu.dinner,
+        lunchName: menu.lunch?.name || null,
+        dinnerName: menu.dinner?.name || null,
+        dayName: dayNamesShort[i],
+        isWeekend: false,
+        dayOfWeek: i + 1
+      })
     }
-  }
-  
-  // Add remaining days to complete last week
-  if (currentWeek.length > 0 && currentWeek.some(d => d !== null)) {
-    while (currentWeek.length < 7) {
-      currentWeek.push(null)
+    
+    // Generate label showing date range
+    const startDay = weekDays[0].day
+    const endDay = weekDays[4].day
+    const startMonth = weekDays[0].dateObj.getMonth()
+    const endMonth = weekDays[4].dateObj.getMonth()
+    
+    let label
+    if (startMonth === endMonth) {
+      label = `${monthNames[startMonth]} ${startDay}-${endDay}`
+    } else {
+      label = `${startDay} ${monthNames[startMonth]} - ${endDay} ${monthNames[endMonth]}`
     }
-    const validDays = currentWeek.filter(d => d !== null && d.currentMonth)
-    if (validDays.length > 0) {
-      weeks.push({ days: currentWeek })
-    }
+    
+    weeks.push({ days: weekDays, label, start: weekDays[0].date })
   }
-  
+
   return weeks
 })
 
@@ -536,12 +571,22 @@ function openCopyWeekModal(week) {
     const year = pastWeekStart.getFullYear()
     const startDay = pastWeekStart.getDate()
     const endDay = pastWeekEnd.getDate()
+    const startMonth = pastWeekStart.getMonth()
+    const endMonth = pastWeekEnd.getMonth()
+    
+    // Show full date range if spanning months, otherwise just start month
+    let label
+    if (startMonth === endMonth) {
+      label = `${monthNames[startMonth]} ${startDay}-${endDay}`
+    } else {
+      label = `${startDay} ${monthNames[startMonth]} - ${endDay} ${monthNames[endMonth]}`
+    }
     
     previousWeeks.value.push({
-      label: `${monthNames[pastWeekStart.getMonth()]} ${startDay}-${endDay}`,
+      label,
       startDate: pastWeekStart,
       year,
-      month: pastWeekStart.getMonth()
+      month: startMonth
     })
   }
 }
@@ -883,7 +928,10 @@ onUnmounted(() => {
   color: var(--primary);
 }
 .day-row.weekend { }
-.day-row.other-month { opacity: 0.4; }
+
+.day-row.other-month { 
+  opacity: 0.6;
+ }
 
 .day-info { min-width: 50px; }
 
@@ -1000,6 +1048,10 @@ onUnmounted(() => {
 
 .calendar-day.expanded {
   aspect-ratio: 1.8;
+}
+
+.calendar-day.other-month {
+  opacity: 0.6;
 }
 
 .calendar-day.empty {
