@@ -659,7 +659,8 @@ onMounted(() => {
   font-size: 3rem;
   font-weight: 700;
   color: var(--primary);
-  z-index: 1;
+  opacity: 0.6;
+  z-index: -1;
 }
 
 .dish-card-overlay {
@@ -669,6 +670,7 @@ onMounted(() => {
   display: flex;
   align-items: flex-end;
   padding: 16px;
+  z-index: 1;
 }
 
 .dish-card-content h3 {
