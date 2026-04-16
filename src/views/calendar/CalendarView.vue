@@ -636,8 +636,11 @@ onMounted(async () => {
   margin-bottom: 4px;
 }
 
-.calendar-content-list .week-group {
-  margin-bottom: 4px;
+/* Mobile styles (below 768px) - add padding for bottom nav */
+@media (max-width: 767px) {
+  .calendar-view .content-section {
+    padding-bottom: 65px;
+  }
 }
 
 .week-header {
@@ -727,7 +730,7 @@ onMounted(async () => {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 5px;
 }
 
 /* Wide content on medium+ screens */
@@ -779,7 +782,6 @@ onMounted(async () => {
 }
 
 .calendar-day {
-  aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
