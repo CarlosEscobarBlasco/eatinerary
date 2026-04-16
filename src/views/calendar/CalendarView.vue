@@ -270,7 +270,7 @@ const copyWeekModal = ref({ show: false, week: null })
 const previousWeeks = ref([])
 
 // Constants
-const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+const weekDays = ['L', 'M', 'X', 'J', 'V']
 const dayNamesFull = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -302,9 +302,13 @@ const calendarDays = computed(() => {
     days.push(null)
   }
   
-  // Add days of current month only
+  // Add days of current month only (excluding Saturday and Sunday)
   for (let day = 1; day <= totalDays; day++) {
     const date = new Date(currentYear.value, currentMonth.value, day)
+    const dayOfWeek = date.getDay()
+    // Skip Saturday (6) and Sunday (0)
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue
+    
     const dateStr = formatDate(date)
     const isToday = day === today.getDate() && currentMonth.value === today.getMonth() && currentYear.value === today.getFullYear()
     const menu = monthMenus.value[dateStr] || {}
@@ -401,8 +405,8 @@ function getMealLines(day) {
   const menu = monthMenus.value[day.date] || {}
   if (menu.lunch && menu.dinner) {
     return [
-      { text: menu.lunch.name ? menu.lunch.name.substring(0, 6) : 'Almuerzo' },
-      { text: menu.dinner.name ? menu.dinner.name.substring(0, 6) : 'Cena' }
+      { text: menu.lunch.name ? menu.lunch.name.substring(0, 15) : 'Almuerzo' },
+      { text: menu.dinner.name ? menu.dinner.name.substring(0, 15) : 'Cena' }
     ]
   }
   if (menu.lunch) {
@@ -509,8 +513,8 @@ function openCopyWeekModal(week) {
   const weekStart = week.days.find(d => d && d.dayOfWeek === 1)?.dateObj || new Date(currentYear.value, currentMonth.value, 1)
   if (!weekStart) return
   
-  // Get last 5 weeks before this week
-  for (let i = 1; i <= 5; i++) {
+  // Get last 8 weeks before this week
+  for (let i = 1; i <= 8; i++) {
     const daysToSubtract = i * 7
     const pastWeekStart = new Date(weekStart)
     pastWeekStart.setDate(pastWeekStart.getDate() - daysToSubtract)
@@ -566,9 +570,17 @@ async function copyFromPastWeek(pastWeek) {
     const menuDate = new Date(menu.date + 'T00:00:00')
     const dow = menuDate.getDay()
     const adjustedDow = dow === 0 ? 7 : dow - 1 // 0 = Monday, 4 = Friday
-    pastMenuMap[adjustedDow] = {
-      lunch: Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes,
-      meal_type: menu.meal_type
+    
+    if (!pastMenuMap[adjustedDow]) {
+      pastMenuMap[adjustedDow] = { lunch: null, dinner: null }
+    }
+    
+    const dish = Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes
+    
+    if (menu.meal_type === 'lunch') {
+      pastMenuMap[adjustedDow].lunch = dish
+    } else if (menu.meal_type === 'dinner') {
+      pastMenuMap[adjustedDow].dinner = dish
     }
   }
   
@@ -587,15 +599,9 @@ async function copyFromPastWeek(pastWeek) {
       await dailyMenuStore.setDishForDate(targetDateStr, pastMenu.lunch.id, 'lunch')
     }
     
-    // Copy dinner - need to find it
-    const dinnerMenu = dailyMenuStore.dailyMenus.find(m => 
-      m.date === pastMenu.date && m.meal_type === 'dinner'
-    )
-    if (dinnerMenu) {
-      const dinnerDish = Array.isArray(dinnerMenu.dishes) ? dinnerMenu.dishes[0] : dinnerMenu.dishes
-      if (dinnerDish) {
-        await dailyMenuStore.setDishForDate(targetDateStr, dinnerDish.id, 'dinner')
-      }
+    // Copy dinner
+    if (pastMenu.dinner) {
+      await dailyMenuStore.setDishForDate(targetDateStr, pastMenu.dinner.id, 'dinner')
     }
   }
   
@@ -909,7 +915,7 @@ onMounted(async () => {
 .calendar-content-grid .calendar-days {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 5px;
 }
 
@@ -944,7 +950,7 @@ onMounted(async () => {
 
 .weekdays-header {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   margin-bottom: 8px;
 }
 
@@ -957,7 +963,7 @@ onMounted(async () => {
 
 .calendar-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 5px;
 }
 
@@ -1000,14 +1006,15 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   font-size: 0.5rem;
   font-weight: 600;
   color: var(--primary);
   max-width: 100%;
   overflow: hidden;
-  text-align: center;
+  text-align: left;
   line-height: 1.2;
+  padding: 4px;
 }
 
 .meal-indicator .meal-line {
@@ -1197,6 +1204,8 @@ onMounted(async () => {
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
+  max-height: 350px;
+  overflow-y: auto;
 }
 
 .week-option {
