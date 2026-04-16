@@ -940,11 +940,11 @@ onMounted(async () => {
   }
   
   .calendar-content-list {
-    padding: 0 32px;
+    padding: 0 180px;
   }
   
   .calendar-content-grid {
-    padding: 0 32px;
+    padding: 0 180px;
   }
 }
 
