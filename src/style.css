@@ -206,16 +206,33 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--on-tertiary-container);
 }
 
-/* Scrollbar personalizada */
+/* Scrollbar personalizada - hide when not scrolling */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--surface-container);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--outline-variant);
+  background: transparent;
   border-radius: 3px;
+  transition: background 0.3s;
+}
+
+/* Show scrollbar only when hovering over scrollable area */
+*:hover::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--outline-variant) transparent;
 }

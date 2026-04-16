@@ -776,14 +776,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0 16px 16px;
 }
 
 /* List Content - scrollable inside wrapper */
 .calendar-content-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0;
+  padding: 0 16px 16px;
 }
 
 .calendar-content-list .week-group {
@@ -897,9 +896,9 @@ onMounted(async () => {
 .calendar-content-grid {
   display: flex;
   flex-direction: column;
-  padding: 0 16px;
   overflow: hidden;
   min-height: 0;
+  padding: 0 10px 10px 10px;
 }
 
 .calendar-content-grid .weekdays-header,
