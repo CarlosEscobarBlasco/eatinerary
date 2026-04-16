@@ -103,18 +103,21 @@
         </div>
         
         <div class="calendar-days">
-          <div 
-            v-for="day in calendarDays" 
-            :key="day.date"
-            class="calendar-day"
-            :class="{ 'other-month': !day.currentMonth, 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
-            @click="selectDate(day)"
-          >
-            <span class="day-number">{{ day.day }}</span>
-            <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
-              {{ getMealIndicator(day) }}
-            </span>
-          </div>
+          <template v-for="day in calendarDays">
+            <div 
+              v-if="day"
+              :key="day.date"
+              class="calendar-day"
+              :class="{ 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
+              @click="selectDate(day)"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
+                {{ getMealIndicator(day) }}
+              </span>
+            </div>
+            <div v-else class="calendar-day empty"></div>
+          </template>
         </div>
       </div>
     </div>
@@ -225,7 +228,7 @@ const dishSelector = ref({ show: false, mealType: null })
 const dishSearchQuery = ref('')
 
 // Constants
-const weekDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 const dayNamesFull = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -244,32 +247,26 @@ const calendarDays = computed(() => {
   const days = []
   const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  const startDay = firstDay.getDay()
   const totalDays = lastDay.getDate()
-
-  const prevLastDay = new Date(currentYear.value, currentMonth.value, 0).getDate()
-  for (let i = startDay - 1; i >= 0; i--) {
-    const day = prevLastDay - i
-    const date = new Date(currentYear.value, currentMonth.value - 1, day)
-    const dateStr = formatDate(date)
-    const menu = monthMenus.value[dateStr] || {}
-    days.push({ day, date: dateStr, currentMonth: false, isToday: false, hasLunch: !!menu.lunch, hasDinner: !!menu.dinner })
+  
+  // Get day of week (0 = Monday, 6 = Sunday)
+  // In JS: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  // Convert to: 0 = Monday, ..., 6 = Sunday
+  let startDayOfWeek = firstDay.getDay()
+  startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
+  
+  // Add empty slots for days before the 1st of month (to start on Monday)
+  for (let i = 0; i < startDayOfWeek; i++) {
+    days.push(null)
   }
-
+  
+  // Add days of current month only
   for (let day = 1; day <= totalDays; day++) {
     const date = new Date(currentYear.value, currentMonth.value, day)
     const dateStr = formatDate(date)
     const isToday = day === today.getDate() && currentMonth.value === today.getMonth() && currentYear.value === today.getFullYear()
     const menu = monthMenus.value[dateStr] || {}
     days.push({ day, date: dateStr, currentMonth: true, isToday, hasLunch: !!menu.lunch, hasDinner: !!menu.dinner })
-  }
-
-  const remaining = 42 - days.length
-  for (let day = 1; day <= remaining; day++) {
-    const date = new Date(currentYear.value, currentMonth.value + 1, day)
-    const dateStr = formatDate(date)
-    const menu = monthMenus.value[dateStr] || {}
-    days.push({ day, date: dateStr, currentMonth: false, isToday: false, hasLunch: !!menu.lunch, hasDinner: !!menu.dinner })
   }
 
   return days
@@ -641,6 +638,9 @@ onMounted(async () => {
   .calendar-view .content-section {
     padding-bottom: 65px;
   }
+  .calendar-day {
+    aspect-ratio: 1!important;
+  }
 }
 
 .week-header {
@@ -713,7 +713,6 @@ onMounted(async () => {
 
 /* Grid Content - no scroll, fits in viewport */
 .calendar-content-grid {
-  flex: 1;
   display: flex;
   flex-direction: column;
   padding: 0 16px;
@@ -782,6 +781,7 @@ onMounted(async () => {
 }
 
 .calendar-day {
+  aspect-ratio: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -793,7 +793,11 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.calendar-day.other-month { opacity: 0.3; }
+.calendar-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
 .calendar-day.today { background: var(--primary-container); border: 2px solid var(--primary); }
 .calendar-day.has-meals { background: var(--surface-container-low); }
 
