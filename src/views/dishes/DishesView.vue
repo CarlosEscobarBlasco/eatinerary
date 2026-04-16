@@ -1,67 +1,79 @@
 <template>
   <div class="dishes-view">
-    <header class="dishes-header">
-      <h1>Mis Platos</h1>
-      <div class="search-box">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="M21 21l-4.35-4.35"></path>
-        </svg>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Buscar..."
-          class="search-input"
-        />
-      </div>
-    </header>
-
-    <div v-if="dishStore.loading" class="loading">
-      <div class="loading-spinner"></div>
-      <p>Cargando...</p>
-    </div>
-    <div v-else-if="dishStore.error" class="error">
-      <p>{{ dishStore.error }}</p>
-    </div>
-
-    <div v-else class="dishes-grid">
-      <article 
-        v-for="dish in filteredDishes" 
-        :key="dish.id" 
-        class="dish-card"
-        :style="dish.image_url ? { backgroundImage: `url(${dish.image_url})` } : {}"
-        :class="{ 'no-image': !dish.image_url }"
-        @click="openForm(dish)"
-      >
-        <div class="dish-card-overlay">
-          <div v-if="!dish.image_url" class="dish-initial">
-            {{ dish.name.charAt(0).toUpperCase() }}
-          </div>
-          <div class="dish-card-content">
-            <h3>{{ dish.name }}</h3>
-            <a v-if="dish.url" :href="dish.url" target="_blank" class="dish-link" @click.stop>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </a>
-          </div>
-        </div>
-      </article>
-
-      <div v-if="filteredDishes.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <!-- Header Section -->
+    <div class="header-section">
+      <header class="dishes-header">
+        <h1>Platos</h1>
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35"></path>
           </svg>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Buscar..."
+            class="search-input"
+          />
+          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
-        <h3 v-if="searchQuery">No se encontraron platos</h3>
-        <h3 v-else>No hay platos todavía</h3>
-        <p v-if="searchQuery">Prueba con otra búsqueda</p>
-        <p v-else>Añade tu primer plato para comenzar</p>
-        <button v-if="!searchQuery" class="add-first-btn" @click="openForm()">Añadir plato</button>
+      </header>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+      <div v-if="dishStore.loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando...</p>
+      </div>
+      <div v-else-if="dishStore.error" class="error">
+        <p>{{ dishStore.error }}</p>
+      </div>
+
+      <div v-else class="dishes-grid">
+        <article 
+          v-for="dish in filteredDishes" 
+          :key="dish.id" 
+          class="dish-card"
+          :style="dish.image_url ? { backgroundImage: `url(${dish.image_url})` } : {}"
+          :class="{ 'no-image': !dish.image_url }"
+          @click="openForm(dish)"
+        >
+          <div class="dish-card-overlay">
+            <div v-if="!dish.image_url" class="dish-initial">
+              {{ dish.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="dish-card-content">
+              <h3>{{ dish.name }}</h3>
+              <a v-if="dish.url" :href="dish.url" target="_blank" class="dish-link" @click.stop>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <div v-if="filteredDishes.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+          </div>
+          <h3 v-if="searchQuery">No se encontraron platos</h3>
+          <h3 v-else>No hay platos todavía</h3>
+          <p v-if="searchQuery">Prueba con otra búsqueda</p>
+          <p v-else>Añade tu primer plato para comenzar</p>
+          <button v-if="!searchQuery" class="add-first-btn" @click="openForm()">Añadir plato</button>
+        </div>
       </div>
     </div>
 
@@ -71,20 +83,25 @@
     </button>
 
     <!-- Form Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
-      <div class="modal-content form-modal">
-        <header class="modal-header">
-          <h2>{{ editingDish ? 'Editar Plato' : 'Nuevo Plato' }}</h2>
-          <div class="header-actions">
-            <button v-if="editingDish" class="delete-btn" @click="deleteDish">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
-            <button class="close-btn" @click="closeForm">
-              <span>×</span>
-            </button>
+    <div v-if="showForm" class="modal-overlay"  @click.self="closeForm">
+      <div class="modal-content">
+        <header class="modal-header">          
+          <div class="header-top">
+            <h2>{{ editingDish ? 'Editar Plato' : 'Nuevo Plato' }}</h2>
+            <div class="header-actions">
+              <button v-if="editingDish" class="delete-btn" @click="deleteDish">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+              <button class="modal-close" @click="closeForm">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>              
+            </div>
           </div>
         </header>
 
@@ -229,6 +246,16 @@ import { MEAL_TYPES } from '../../lib/supabase'
 
 const dishStore = useDishStore()
 
+// Check screen size
+const isLargeScreen = ref(false)
+onMounted(() => {
+  const checkScreen = () => {
+    isLargeScreen.value = window.innerWidth >= 768
+  }
+  checkScreen()
+  window.addEventListener('resize', checkScreen)
+})
+
 const searchQuery = ref('')
 
 const filteredDishes = computed(() => {
@@ -357,32 +384,59 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+@media (max-width: 767px) {
+  
+}
+
+/* Main layout with flex column */
 .dishes-view {
   min-height: 100vh;
   background: var(--surface);
-  padding-top: 110px;
-  padding-bottom: 100px;
-}
-
-.dishes-view .content-wrapper {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 100%;
+  max-width: 480px;
   margin: 0 auto;
+  height: 100vh;
 }
 
-.dishes-header {
+/* Header section - fixed, stays visible */
+.dishes-view .header-section {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  max-height: 120px;
+}
+
+/* Content section - scrollable, fills remaining space */
+.dishes-view .content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 100px;
+  max-height: calc(100vh - 120px);
+  min-height: 0;
+}
+
+.dishes-view .dishes-header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 20px;
-  background: var(--surface);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  padding: 0;
+  background: transparent;
+  position: static;
   width: 100%;
   max-width: 100%;
+  text-align: center;
+}
+
+.dishes-view .dishes-header h1 {
+  text-align: center;
 }
 
 .search-box {
@@ -414,6 +468,23 @@ onMounted(() => {
 
 .search-input::placeholder {
   color: var(--on-surface-variant);
+}
+
+.search-clear {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-container);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+}
+
+.search-clear:hover {
+  background: var(--surface-container-high);
 }
 
 .dishes-header h1 {
@@ -524,26 +595,33 @@ onMounted(() => {
 .dishes-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 18px;
   padding: 16px 20px 100px;
 }
 
 /* Wide content on medium+ screens */
 @media (min-width: 768px) {
-  .dishes-view .content-wrapper {
-    max-width: 800px;
+  .dishes-view {
+    max-width: none;
   }
   
-  .dishes-header {
-    max-width: 800px;
-    left: 50%;
-    transform: translateX(-50%);
+  .dishes-view .header-section {
+    padding: 16px 32px;
+  }
+  
+  .dishes-view .content-section {
+    padding-right: 0;
   }
   
   .dishes-grid {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px 24px 100px;
+    max-width: none;
+    margin: 0;
+    padding: 0 32px 100px;
+  }
+  
+  .dishes-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
   }
 }
 
@@ -686,20 +764,16 @@ onMounted(() => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(57, 56, 49, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
-  z-index: 100;
-  backdrop-filter: blur(4px);
+  justify-content: center;
+  z-index: 200;
 }
 
-.modal-content {
-  width: 100%;
-  max-height: 90vh;
-  background: var(--surface-container-lowest);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  overflow: hidden;
-  animation: slideUp 0.3s ease-out;
+.modal-overlay.modal-centered {
+  align-items: center;
 }
 
 @keyframes slideUp {
@@ -711,24 +785,63 @@ onMounted(() => {
   }
 }
 
-.form-modal .modal-header {
+.modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 20px;
+  animation: slideUp 0.25s ease-out;
+  height: 75vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-content.modal-centered {
+  border-radius: 24px;
+  height: auto;
+  max-height: 80vh;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-header .header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--surface-container);
 }
 
-.form-modal .modal-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--on-surface);
+.modal-header h2 { 
+  font-size: 1.25rem; 
+  font-weight: 600; 
+  color: var(--on-surface); 
+  margin: 0; 
 }
+
 
 .header-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface);
+  border: none;
+  cursor: pointer;
 }
 
 .delete-btn {
@@ -740,27 +853,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-}
-
-.close-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--surface-container);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--on-surface);
+  border: none;
+  cursor: pointer;
 }
 
 .dish-form {
-  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-height: 75vh;
-  overflow-y: auto;
 }
 
 .form-group {

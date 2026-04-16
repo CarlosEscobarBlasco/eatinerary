@@ -154,7 +154,7 @@ npm run dev
 
 ### Añadir Platos
 
-1. Ve a **Mis Platos**
+1. Ve a **Platos**
 2. Usa el buscador para filtrar platos
 3. Pulsa el botón **+**
 4. Rellena los campos:

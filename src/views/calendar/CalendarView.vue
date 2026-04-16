@@ -748,7 +748,7 @@ onMounted(async () => {
 
 .view-toggle {
   display: flex;
-  justify-content: center;
+  justify-content: end;
   gap: 4px;
 }
 

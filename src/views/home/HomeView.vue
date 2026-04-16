@@ -23,7 +23,7 @@
           <span class="nav-icon">🍲</span>
         </div>
         <div class="nav-text">
-          <span class="nav-label">Mis Platos</span>
+          <span class="nav-label">Platos</span>
           <span class="nav-desc">Gestiona tu repertorio</span>
         </div>
         <span class="nav-arrow">→</span>
