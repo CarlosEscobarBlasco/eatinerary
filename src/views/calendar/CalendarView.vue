@@ -112,9 +112,11 @@
               @click="selectDate(day)"
             >
               <span class="day-number">{{ day.day }}</span>
-              <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
-                {{ getMealIndicator(day) }}
-              </span>
+              <div v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
+                <span v-for="(meal, index) in getMealLines(day)" :key="index" class="meal-line">
+                  {{ meal.text }}
+                </span>
+              </div>
             </div>
             <div v-else class="calendar-day empty"></div>
           </template>
@@ -349,14 +351,26 @@ const formatSelectedDate = computed(() => {
 function getMealIndicator(day) {
   const menu = monthMenus.value[day.date] || {}
   if (menu.lunch && menu.dinner) {
-    // If there's space, show full names
-    return day.day <= 15 ? `${menu.lunch?.name?.substring(0, 6) || 'A'} + ${menu.dinner?.name?.substring(0, 6) || 'C'}` : 'A+C'
-  }
-  const name = menu.lunch?.name || menu.dinner?.name
-  if (name && day.day <= 15) {
-    return name.substring(0, 8)
+    return 'A'
   }
   return menu.lunch ? 'A' : 'C'
+}
+
+function getMealLines(day) {
+  const menu = monthMenus.value[day.date] || {}
+  if (menu.lunch && menu.dinner) {
+    return [
+      { text: menu.lunch.name ? menu.lunch.name.substring(0, 6) : 'Almuerzo' },
+      { text: menu.dinner.name ? menu.dinner.name.substring(0, 6) : 'Cena' }
+    ]
+  }
+  if (menu.lunch) {
+    return [{ text: menu.lunch.name ? menu.lunch.name.substring(0, 8) : 'Almuerzo' }]
+  }
+  if (menu.dinner) {
+    return [{ text: menu.dinner.name ? menu.dinner.name.substring(0, 8) : 'Cena' }]
+  }
+  return []
 }
 
 function getMealNames(day) {
@@ -781,16 +795,15 @@ onMounted(async () => {
 }
 
 .calendar-day {
-  aspect-ratio: 2;
+  aspect-ratio: 1.5;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
+  padding: 3px;
   border-radius: 6px;
   background: var(--surface-container);
   cursor: pointer;
   overflow: hidden;
+  position: relative;
 }
 
 .calendar-day.empty {
@@ -801,18 +814,43 @@ onMounted(async () => {
 .calendar-day.today { background: var(--primary-container); border: 2px solid var(--primary); }
 .calendar-day.has-meals { background: var(--surface-container-low); }
 
-.calendar-day .day-number { font-size: 0.75rem; font-weight: 500; color: var(--on-surface); }
-.calendar-day.today .day-number { color: var(--on-primary-container); font-weight: 700; }
+.calendar-day .day-number {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--on-surface);
+  position: absolute;
+  top: 2px;
+  left: 4px;
+}
+
+.calendar-day.today .day-number {
+  color: var(--on-primary-container);
+  font-weight: 700;
+}
 
 .meal-indicator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: var(--primary);
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.meal-indicator .meal-line {
   font-size: 0.55rem;
   font-weight: 600;
   color: var(--primary);
-  margin-top: 1px;
-  max-width: 100%;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
 }
 
 .meal-indicator:hover {
