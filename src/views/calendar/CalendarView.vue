@@ -795,7 +795,7 @@ onMounted(async () => {
 }
 
 .calendar-day {
-  aspect-ratio: 1.5;
+  aspect-ratio: 1.8;
   display: flex;
   flex-direction: column;
   padding: 3px;

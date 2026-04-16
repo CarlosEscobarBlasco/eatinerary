@@ -2,7 +2,7 @@
   <!-- Sidebar Navigation for medium+ screens -->
   <nav class="sidebar-nav">
     <div class="sidebar-brand">
-      <span class="brand-icon">M</span>
+      <img src="/logo.png" alt="Mealendar" class="brand-logo" />
     </div>
     <div class="sidebar-menu">
       <RouterLink to="/" class="sidebar-item" :class="{ active: $route.path === '/' }">
@@ -118,17 +118,11 @@ import { RouterLink } from 'vue-router'
   margin-bottom: 32px;
 }
 
-.brand-icon {
+.brand-logo {
   width: 48px;
   height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 1.5rem;
-  font-weight: 700;
   border-radius: 12px;
+  object-fit: contain;
 }
 
 .sidebar-menu {
