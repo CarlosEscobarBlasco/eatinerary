@@ -4,31 +4,42 @@ Aplicación móvil para planificar tu menú semanal. Gestiona un repertorio de p
 
 ## Características
 
-- **Autenticación**: Login con email y contraseña
-- **Gestionar repertorio de platos** con imagen, ingredientes y notas
-- **Subir imágenes** desde el dispositivo
-- **Selector de tipo de comida** (comida, cena o ambos)
-- **Filtro de búsqueda** en el listado de platos
-- **Calendario mensual** con dos vistas:
-  - **Vista de listado**: todos los días del mes, agrupados por semanas
-  - **Vista de cuadrícula**: calendario tradicional
-- **Toggle mostrar/ocultar** fines de semana
-- **Copiar mes anterior** por día de la semana (primer lunes copia primer lunes, etc.)
-- **Navegación entre meses** con flechas y swipe
-- **Botón "Hoy"** para ir al mes actual con scroll automático
-- **Día actual marcado** con banda naranja a la izquierda
-- **Filtro al seleccionar plato** en el calendario
-- **Borrado en cascade** al eliminar platos
+### Autenticación
+- Login con email y contraseña (Supabase Auth)
 
-## Interfaz
+### Gestión de Platos
+- Crear, editar y eliminar platos
+- Imagen del plato (subida desde dispositivo)
+- Ingredientes, tipo de comida (comida/cena/ambos), URL y notas
+- Buscador con X para limpiar
+- Imagen inicial (letra naranja) cuando no hay imagen
+- Botón guardar en header del modal
+- Botón eliminar al final del formulario
+- Caché de imágenes en localStorage (7 días)
 
-- **Color primario**: naranja (#e67300)
-- **Semanas начинают lunes y terminan domingo** (7 días)
-- **Iconos planos** en toda la aplicación (sin emojis)
-- **Botón de enlace** en tarjetas de platos cuando tienen URL
-- **Platos sin imagen**: muestran la inicial del nombre
-- **Modales** se abren desde abajo
-- **Filtro de búsqueda** en selector de platos
+### Calendario
+- **Dos vistas:** Lista (scrollable) y Cuadrícula (fija en pantalla)
+- **Semanas completas:** Muestra días de otros meses con transparencia
+- **Solo días laborables:** Lunes a viernes
+- **Navegación:** Entre meses con flechas
+- **Botón "Hoy":** Va al mes actual y hace scroll al día actual
+- **Copiar semana:** Copia comida y cena de semanas anteriores (8 semanas)
+- **Selector de plato:** Con buscador y miniaturas de imágenes
+- **Detalle del día:** Muestra imágenes de los platos seleccionados
+- **Aspect ratio adaptativo:** Cambia según el sidebar esté expandido/colapsado
+
+### Interfaz
+- **Color primario:** Naranja (#e67300)
+- **Diseño responsivo:**
+  - Móvil (< 768px): Bottom navigation
+  - Desktop (≥ 768px): Sidebar colapsable
+- **Sidebar:**
+  - Colapsable con botón en la parte inferior
+  - Logo y menú con iconos
+  - Ocupa 72px colapsado, 240px expandido
+- **Scrollbar:** Invisible cuando no se hace scroll
+- **Web App:** Iconos para pantalla de inicio iOS/Android
+- **Favicon:** Múltiples tamaños para diferentes contextos
 
 ## Configuración de Supabase
 
@@ -164,24 +175,24 @@ npm run dev
    - **Tipo**: comida, cena o ambos
    - **Link**: url opcional
    - **Notas**: texto libre
-5. Pulsa **Guardar**
+5. Pulsa **Guardar** (botón en header)
 
 ### Calendario
 
 1. Ve a **Calendario**
-2. **Toggle Listado/Cuadrícula**: cambia entre vista de lista y calendario tradicional
+2. **Toggle Vista**: cambia entre lista y cuadrícula
 3. **Navegación**: usa las flechas o haz swipe horizontal
 4. **Ver día**: pulsa en cualquier día para ver/editar platos
-5. **Filtro al buscar plato**: escribe para filtrar los platos disponibles
-6. **Copiar mes anterior**: copia los platos del mes anterior por día de la semana
-7. **Hoy**: botón para volver al mes actual con scroll al día de hoy
+5. **Copiar semana**: pulsa el icono de copiar en el header de semana
+6. **Hoy**: botón para volver al mes actual
+7. **Sidebar** (escritorio): haz clic en el botón inferior para colapsar/expandir
 
 ### Seleccionar Plato
 
 1. Pulsa en un día del calendario
 2. Pulsa **+ Añadir** en Comida o Cena
-3. Usa el buscador para filtrar
-4. Pulsa en el plato desired
+3. Usa el buscador para filtrar (con X para limpiar)
+4. Pulsa en el plato
 
 ## Estructura del Proyecto
 
@@ -189,7 +200,7 @@ npm run dev
 mealendar/
 ├── src/
 │   ├── components/
-│   │   └── BottomNav.vue
+│   │   └── BottomNav.vue        # Navegación (sidebar + bottom nav)
 │   ├── lib/
 │   │   ├── router/index.js
 │   │   └── supabase.js
@@ -221,6 +232,22 @@ mealendar/
 - `npm run preview`: Previsualizar producción
 
 ## Changelog
+
+### v2.0.0
+- Sidebar colapsable (escritorio ≥768px)
+- Semanas completas en calendario (días de otros meses)
+- Transparencia en días de otros meses
+- Etiquetas de semana con rango de fechas
+- 8 semanas anteriores para copiar
+- Botón guardar en header del modal de platos
+- Botón eliminar al final del formulario
+- Imagen de plato en selector de calendario
+- Miniaturas circulares en modales
+- Caché de imágenes en localStorage (7 días)
+- Buscador con X para limpiar
+- Scrollbar invisible cuando no se hace scroll
+- Apple touch icon para Web App
+- Aspect ratio adaptativo según sidebar
 
 ### v1.2.0
 - Login con autenticación

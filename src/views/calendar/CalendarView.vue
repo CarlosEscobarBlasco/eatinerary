@@ -6,43 +6,45 @@
         <!-- Title -->
         <h1 class="title">{{ monthNames[currentMonth] + ' ' + currentYear }}</h1>
         
-        <!-- Navigation between months -->
-        <div class="nav-row">
-          <button class="nav-btn" @click="prevMonth">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
+        <!-- Navigation and View Toggle -->
+        <div class="controls-row">
+          <div class="nav-row">
+            <button class="nav-btn" @click="prevMonth">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            
+            <button class="today-btn" @click="goToToday">Hoy</button>
+            
+            <button class="nav-btn" @click="nextMonth">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
           
-          <button class="today-btn" @click="goToToday">Hoy</button>
-          
-          <button class="nav-btn" @click="nextMonth">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        </div>
-        
-        <!-- View Toggle: List/Grid -->
-        <div class="view-toggle">
-          <button class="toggle-btn" :class="{ active: isListView }" @click="isListView = true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
-          <button class="toggle-btn" :class="{ active: !isListView }" @click="isListView = false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-          </button>
+          <!-- View Toggle: List/Grid -->
+          <div class="view-toggle">
+            <button class="toggle-btn" :class="{ active: isListView }" @click="isListView = true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+            <button class="toggle-btn" :class="{ active: !isListView }" @click="isListView = false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
     </div>
@@ -853,27 +855,33 @@ onUnmounted(() => {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .title {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--on-surface);
-  margin: 0 0 8px 0;
+  margin: 0;
   text-align: center;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .nav-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 8px;
 }
 
 .nav-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--surface-container);
   display: flex;
@@ -885,11 +893,11 @@ onUnmounted(() => {
 }
 
 .today-btn {
-  padding: 8px 20px;
+  padding: 6px 12px;
   background: var(--primary);
   color: var(--on-primary);
-  border-radius: 10px;
-  font-size: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -897,7 +905,7 @@ onUnmounted(() => {
 
 .view-toggle {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   gap: 4px;
 }
 
@@ -1085,12 +1093,17 @@ onUnmounted(() => {
     max-width: none;
   }
   
-  .calendar-content-list {
-    padding: 0 180px;
+  .calendar-header {
+    position: relative;
   }
   
-  .calendar-content-grid {
-    padding: 0 180px;
+  .controls-row {
+    justify-content: center;
+  }
+  
+  .view-toggle {
+    position: absolute;
+    right: 0;
   }
 }
 
