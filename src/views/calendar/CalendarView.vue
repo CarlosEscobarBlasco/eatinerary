@@ -2,10 +2,10 @@
   <div class="calendar-view">
     <!-- Header -->
     <header class="calendar-header">
-      <!-- Title row -->
+      <!-- Title -->
       <h1 class="title">{{ monthNames[currentMonth] + ' ' + currentYear }}</h1>
       
-      <!-- Navigation row between content and header -->
+      <!-- Navigation between months -->
       <div class="nav-row">
         <button class="nav-btn" @click="prevMonth">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -22,35 +22,37 @@
         </button>
       </div>
       
-      <!-- List/Grid Toggle -->
+      <!-- View Toggle: List/Grid -->
       <div class="view-toggle">
         <button class="toggle-btn" :class="{ active: isListView }" @click="isListView = true">
-          Listado
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
         </button>
         <button class="toggle-btn" :class="{ active: !isListView }" @click="isListView = false">
-          Cuadrícula
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
         </button>
-      </div>
-
-      <!-- Weekend toggle (only in list view) -->
-      <div v-if="isListView" class="weekend-toggle">
-        <span class="weekend-label" @click="showWeekend = !showWeekend">Mostrar fin de semana</span>
-        <div class="toggle-switch" :class="{ on: showWeekend }" @click="showWeekend = !showWeekend">
-          <div class="toggle-thumb"></div>
-        </div>
       </div>
     </header>
 
-    <!-- Content -->
-    <main class="calendar-content">
-      <!-- List View - All days of month with week separators -->
-      <div v-if="isListView" class="month-list">
-<div v-for="week in monthWeeks" :key="week.start" class="week-group">
-          <div class="week-header">
-            {{ getWeekLabel(week.days) }}
-          </div>
-          
-          <template v-for="day in (showWeekend ? week.days : week.days.filter(d => d && !d.isWeekend))" :key="day?.date">
+    <!-- Content: List View (scrollable) -->
+    <div v-if="isListView" class="calendar-content-list">
+      <div v-for="week in monthWeeks" :key="week.start" class="week-group">
+        <div class="week-header">
+          {{ getWeekLabel(week.days) }}
+        </div>
+        
+        <template v-for="day in week.days.filter(d => d && !d.isWeekend)" :key="day?.date">
           <div 
             v-if="day"
             class="day-row"
@@ -85,50 +87,31 @@
               </svg>
             </div>
           </div>
-          </template>
-        </div>
-
-        <!-- Copy Month Button -->
-        <button class="copy-month-btn" @click="showCopyModal = true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span>Copiar mes anterior</span>
-        </button>
+        </template>
       </div>
+    </div>
 
-      <!-- Grid View - Monthly calendar -->
-      <div v-else class="month-grid">
-        <div class="weekdays-header">
-          <span v-for="day in weekDays" :key="day" class="weekday">{{ day }}</span>
-        </div>
-        
-        <div class="calendar-days">
-          <div 
-            v-for="day in calendarDays" 
-            :key="day.date"
-            class="calendar-day"
-            :class="{ 'other-month': !day.currentMonth, 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
-            @click="selectDate(day)"
-          >
-            <span class="day-number">{{ day.day }}</span>
-            <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator">
-              {{ day.hasLunch && day.hasDinner ? 'A+C' : day.hasLunch ? 'A' : 'C' }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Copy Month Button in Grid -->
-        <button class="copy-month-btn" @click="showCopyModal = true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span>Copiar mes anterior</span>
-        </button>
+    <!-- Content: Grid View (not scrollable, fits in screen) -->
+    <div v-else class="calendar-content-grid">
+      <div class="weekdays-header">
+        <span v-for="day in weekDays" :key="day" class="weekday">{{ day }}</span>
       </div>
-    </main>
+      
+      <div class="calendar-days">
+        <div 
+          v-for="day in calendarDays" 
+          :key="day.date"
+          class="calendar-day"
+          :class="{ 'other-month': !day.currentMonth, 'today': day.isToday, 'has-meals': day.hasLunch || day.hasDinner }"
+          @click="selectDate(day)"
+        >
+          <span class="day-number">{{ day.day }}</span>
+          <span v-if="day.hasLunch || day.hasDinner" class="meal-indicator">
+            {{ day.hasLunch && day.hasDinner ? 'A+C' : day.hasLunch ? 'A' : 'C' }}
+          </span>
+        </div>
+      </div>
+    </div>
 
     <!-- Day Detail Modal -->
     <div v-if="selectedDate" class="modal-overlay" @click.self="closeDayDetail">
@@ -208,25 +191,6 @@
         <button class="modal-cancel-btn" @click="closeDishSelector">Cancelar</button>
       </div>
     </div>
-
-    <!-- Copy Month Modal -->
-    <div v-if="showCopyModal" class="modal-overlay" @click.self="showCopyModal = false">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Copiar mes anterior</h2>
-          <button class="modal-close" @click="showCopyModal = false">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        
-        <p class="modal-text">¿Copiar las comidas del mes anterior?</p>
-        <button class="modal-confirm-btn" @click="copyFromPreviousMonth">Sí, copiar</button>
-        <button class="modal-cancel-btn" @click="showCopyModal = false">Cancelar</button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -240,7 +204,6 @@ const dishStore = useDishStore()
 
 // View state
 const isListView = ref(true)
-const showWeekend = ref(false)
 
 // Date state
 const today = new Date()
@@ -251,7 +214,6 @@ const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
 const dayMenu = ref({ lunch: null, dinner: null })
 const monthMenus = ref({})
-const showCopyModal = ref(false)
 const dishSelector = ref({ show: false, mealType: null })
 const dishSearchQuery = ref('')
 
@@ -459,62 +421,6 @@ function closeDishSelector() {
   dishSearchQuery.value = ''
 }
 
-async function copyFromPreviousMonth() {
-  const prevYear = currentMonth.value === 0 ? currentYear.value - 1 : currentYear.value
-  const prevMonth = currentMonth.value === 0 ? 11 : currentMonth.value - 1
-  const prevFirstDay = new Date(prevYear, prevMonth, 1)
-  const prevLastDay = new Date(prevYear, prevMonth + 1, 0)
-  
-  await dailyMenuStore.fetchDailyMenus(formatDate(prevFirstDay), formatDate(prevLastDay))
-  
-  // Organizar menús del mes anterior por posición del día de la semana
-  // key = "0_0" (primer param: dow 0-6, segundo: posición en el mes 0-4)
-  const prevMenusByPos = {}
-  
-  for (const menu of dailyMenuStore.dailyMenus) {
-    const menuDate = new Date(menu.date + 'T00:00:00')
-    const dow = menuDate.getDay()
-    // Calcular posición en el mes (0 = primera vez que sale ese dow, 1 = segunda vez, etc.)
-    const firstDayOfMonth = new Date(menuDate.getFullYear(), menuDate.getMonth(), 1)
-    let pos = 0
-    const currentDate = new Date(firstDayOfMonth)
-    while (currentDate < menuDate) {
-      if (currentDate.getDay() === dow) pos++
-      currentDate.setDate(currentDate.getDate() + 1)
-    }
-    const key = `${dow}_${pos}`
-    const dish = Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes
-    if (!prevMenusByPos[key]) prevMenusByPos[key] = { lunch: null, dinner: null }
-    prevMenusByPos[key][menu.meal_type] = dish
-  }
-  
-  const currentLastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  
-  // Copiar por posición en el mes
-  for (let day = 1; day <= currentLastDay.getDate(); day++) {
-    const date = new Date(currentYear.value, currentMonth.value, day)
-    const dateStr = formatDate(date)
-    const dow = date.getDay()
-    
-    // Calcular posición en el mes actual
-    const firstDayOfMonth = new Date(currentYear.value, currentMonth.value, 1)
-    let pos = 0
-    const currentDate = new Date(firstDayOfMonth)
-    while (currentDate < date) {
-      if (currentDate.getDay() === dow) pos++
-      currentDate.setDate(currentDate.getDate() + 1)
-    }
-    
-    const key = `${dow}_${pos}`
-    const prevMenu = prevMenusByPos[key]
-    if (prevMenu?.lunch) await dailyMenuStore.setDishForDate(dateStr, prevMenu.lunch.id, 'lunch')
-    if (prevMenu?.dinner) await dailyMenuStore.setDishForDate(dateStr, prevMenu.dinner.id, 'dinner')
-  }
-  
-  await loadMonthMenus()
-  showCopyModal.value = false
-}
-
 async function assignDish(dishId) {
   if (!selectedDate.value || !dishSelector.value.mealType) return
   await dailyMenuStore.setDishForDate(selectedDate.value, dishId, dishSelector.value.mealType)
@@ -566,8 +472,11 @@ onMounted(async () => {
   min-height: 100vh;
   background: var(--surface);
   user-select: none;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Header - fixed at top */
 .calendar-header {
   position: fixed;
   top: 0;
@@ -621,14 +530,15 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   gap: 4px;
-  margin-bottom: 12px;
 }
 
 .toggle-btn {
-  padding: 8px 20px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--on-surface-variant);
   background: var(--surface-container);
   border: none;
@@ -640,43 +550,17 @@ onMounted(async () => {
   color: var(--on-primary);
 }
 
-.weekend-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* List Content - scrollable */
+.calendar-content-list {
+  flex: 1;
+  margin-top: 160px;
+  padding: 0 16px 100px;
+  overflow-y: auto;
 }
 
-.weekend-label {
-  font-size: 0.85rem;
-  color: var(--on-surface);
+.calendar-content-list .week-group {
+  margin-bottom: 4px;
 }
-
-.toggle-switch {
-  width: 44px;
-  height: 24px;
-  background: var(--outline);
-  border-radius: 12px;
-  position: relative;
-}
-
-.toggle-switch.on { background: var(--primary); }
-
-.toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.toggle-switch.on .toggle-thumb { transform: translateX(20px); }
-
-.calendar-content { padding: 160px 16px 100px; }
-
-.month-list { display: flex; flex-direction: column; gap: 4px; }
 
 .week-header {
   font-size: 0.75rem;
@@ -746,23 +630,12 @@ onMounted(async () => {
 
 .day-arrow { color: var(--on-surface-variant); }
 
-.copy-month-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px;
-  margin-top: 20px;
-  background: var(--surface-container);
-  color: var(--on-surface);
-  border-radius: 12px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
+/* Grid Content - not scrollable, fits in screen */
+.calendar-content-grid {
+  flex: 1;
+  margin-top: 160px;
+  padding: 0 16px 100px;
 }
-
-.month-grid { display: flex; flex-direction: column; }
 
 .weekdays-header {
   display: grid;

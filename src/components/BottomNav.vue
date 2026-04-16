@@ -7,7 +7,6 @@
         <line x1="8" y1="2" x2="8" y2="6"></line>
         <line x1="3" y1="10" x2="21" y2="10"></line>
       </svg>
-      <span>Calendario</span>
     </RouterLink>
     
     <RouterLink to="/dishes" class="nav-item" :class="{ active: $route.path === '/dishes' }">
@@ -16,7 +15,6 @@
         <path d="M7 2v20"></path>
         <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
       </svg>
-      <span>Platos</span>
     </RouterLink>
   </nav>
 </template>
@@ -61,7 +59,7 @@ import { RouterLink } from 'vue-router'
 
 .nav-item.active {
   background: var(--surface-container-low);
-  color: var(--on-surface);
+  color: var(--primary);
 }
 
 .nav-item svg {

@@ -80,14 +80,6 @@ body {
   margin: 0 auto;
   min-height: 100vh;
   background: var(--surface);
-  border-left: 1px solid var(--surface-container-high);
-  border-right: 1px solid var(--surface-container-high);
-}
-
-@media (max-width: 480px) {
-  #app {
-    border: none;
-  }
 }
 
 a {
