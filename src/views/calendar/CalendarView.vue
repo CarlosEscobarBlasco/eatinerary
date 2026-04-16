@@ -160,6 +160,7 @@
             <span>Comida</span>
           </div>
           <div v-if="dayMenu.lunch" class="modal-dish" @click="selectDish('lunch')">
+            <img v-if="dayMenu.lunch.image_url" :src="getImage(dayMenu.lunch.image_url)" class="dish-thumb" />
             <span>{{ dayMenu.lunch.name }}</span>
             <span class="change-btn">Cambiar</span>
           </div>
@@ -171,6 +172,7 @@
             <span>Cena</span>
           </div>
           <div v-if="dayMenu.dinner" class="modal-dish" @click="selectDish('dinner')">
+            <img v-if="dayMenu.dinner.image_url" :src="getImage(dayMenu.dinner.image_url)" class="dish-thumb" />
             <span>{{ dayMenu.dinner.name }}</span>
             <span class="change-btn">Cambiar</span>
           </div>
@@ -210,6 +212,7 @@
         
         <div class="dish-list">
           <div v-for="dish in availableDishes" :key="dish.id" class="dish-option" @click="assignDish(dish.id)">
+            <img v-if="dish.image_url" :src="getImage(dish.image_url)" class="dish-option-thumb" />
             <span>{{ dish.name }}</span>
           </div>
         </div>
@@ -258,6 +261,73 @@ import { useDishStore } from '../../stores/dishes'
 
 const dailyMenuStore = useDailyMenuStore()
 const dishStore = useDishStore()
+
+// Image cache - stores Base64 images in localStorage
+const imageCache = new Map()
+
+// Load cached image from localStorage
+function getCachedImage(url) {
+  if (!url) return null
+  
+  // Check memory cache first
+  if (imageCache.has(url)) {
+    return imageCache.get(url)
+  }
+  
+  // Check localStorage
+  const cached = localStorage.getItem(`img_${btoa(url)}`)
+  if (cached) {
+    const data = JSON.parse(cached)
+    if (data.expires > Date.now()) {
+      imageCache.set(url, data.url)
+      return data.url
+    } else {
+      localStorage.removeItem(`img_${btoa(url)}`)
+    }
+  }
+  
+  return null
+}
+
+// Save image to cache
+async function cacheImage(url) {
+  if (!url || imageCache.has(url)) return
+  
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64 = reader.result
+      imageCache.set(url, base64)
+      // Save to localStorage with 7-day expiry
+      localStorage.setItem(`img_${btoa(url)}`, JSON.stringify({
+        url: base64,
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000
+      }))
+    }
+    reader.readAsDataURL(blob)
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+// Pre-cache images for all dishes
+function preCacheDishImages() {
+  dishStore.dishes.forEach(dish => {
+    if (dish.image_url) {
+      const cached = getCachedImage(dish.image_url)
+      if (!cached) {
+        cacheImage(dish.image_url)
+      }
+    }
+  })
+}
+
+// Get cached image or original URL
+function getImage(url) {
+  return getCachedImage(url) || url
+}
 
 // View state
 const isListView = ref(true)
@@ -701,6 +771,10 @@ watch([currentMonth, currentYear], loadMonthMenus)
 onMounted(async () => {
   await dishStore.fetchDishes()
   await loadMonthMenus()
+  
+  // Pre-cache dish images
+  preCacheDishImages()
+  
   // Scroll to today after load
   setTimeout(() => {
     const todayEl = document.querySelector('.day-row.today')
@@ -1230,11 +1304,20 @@ onUnmounted(() => {
 
 .modal-dish {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   padding: 14px;
   background: var(--surface-container);
   border-radius: 12px;
   cursor: pointer;
+}
+
+.dish-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .change-btn { color: var(--primary); font-weight: 500; font-size: 0.85rem; }
@@ -1318,12 +1401,21 @@ onUnmounted(() => {
 
 .dish-option {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   padding: 14px 16px;
   background: var(--surface-container);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
   color: var(--on-surface);
+}
+
+.dish-option-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 </style>

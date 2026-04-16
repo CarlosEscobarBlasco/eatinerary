@@ -40,7 +40,7 @@
           v-for="dish in filteredDishes" 
           :key="dish.id" 
           class="dish-card"
-          :style="dish.image_url ? { backgroundImage: `url(${dish.image_url})` } : {}"
+          :style="dish.image_url ? { backgroundImage: `url(${getImage(dish.image_url)})` } : {}"
           :class="{ 'no-image': !dish.image_url }"
           @click="openForm(dish)"
         >
@@ -123,7 +123,7 @@
             
             <!-- Preview de imagen actual/seleccionada -->
             <div v-if="imagePreview || form.image_url" class="image-preview">
-              <img :src="imagePreview || form.image_url" alt="Preview" />
+              <img :src="imagePreview || getImage(form.image_url)" alt="Preview" />
               <button type="button" class="remove-image" @click="removeImage">
                 <span>×</span>
               </button>
@@ -243,14 +243,89 @@ import { MEAL_TYPES } from '../../lib/supabase'
 
 const dishStore = useDishStore()
 
+// Image cache - stores Base64 images in localStorage
+const imageCache = new Map()
+
+// Load cached image from localStorage
+function getCachedImage(url) {
+  if (!url) return null
+  
+  // Check memory cache first
+  if (imageCache.has(url)) {
+    return imageCache.get(url)
+  }
+  
+  // Check localStorage
+  try {
+    const cached = localStorage.getItem(`img_${btoa(url)}`)
+    if (cached) {
+      const data = JSON.parse(cached)
+      if (data.expires > Date.now()) {
+        imageCache.set(url, data.url)
+        return data.url
+      } else {
+        localStorage.removeItem(`img_${btoa(url)}`)
+      }
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+  
+  return null
+}
+
+// Save image to cache
+async function cacheImage(url) {
+  if (!url || imageCache.has(url)) return
+  
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64 = reader.result
+      imageCache.set(url, base64)
+      // Save to localStorage with 7-day expiry
+      localStorage.setItem(`img_${btoa(url)}`, JSON.stringify({
+        url: base64,
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000
+      }))
+    }
+    reader.readAsDataURL(blob)
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+// Get cached image or original URL
+function getImage(url) {
+  return getCachedImage(url) || url
+}
+
+// Pre-cache images for all dishes
+function preCacheDishImages() {
+  dishStore.dishes.forEach(dish => {
+    if (dish.image_url) {
+      const cached = getCachedImage(dish.image_url)
+      if (!cached) {
+        cacheImage(dish.image_url)
+      }
+    }
+  })
+}
+
 // Check screen size
 const isLargeScreen = ref(false)
-onMounted(() => {
+onMounted(async () => {
   const checkScreen = () => {
     isLargeScreen.value = window.innerWidth >= 768
   }
   checkScreen()
   window.addEventListener('resize', checkScreen)
+  
+  // Pre-cache images after dishes are loaded
+  await dishStore.fetchDishes()
+  preCacheDishImages()
 })
 
 const searchQuery = ref('')
