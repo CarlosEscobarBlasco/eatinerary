@@ -19,14 +19,20 @@ Aplicación móvil para planificar tu menú semanal. Gestiona un repertorio de p
 
 ### Calendario
 - **Dos vistas:** Lista (scrollable) y Cuadrícula (fija en pantalla)
-- **Semanas completas:** Muestra días de otros meses con transparencia
-- **Solo días laborables:** Lunes a viernes
-- **Navegación:** Entre meses con flechas
-- **Botón "Hoy":** Va al mes actual y hace scroll al día actual
-- **Copiar semana:** Copia comida y cena de semanas anteriores (8 semanas)
+- **Semanas mostradas:** Semana actual + 5 semanas siguientes (6 semanas totales)
+- ** Solo días laborables:** Lunes a viernes
+- **Navegación:** Entre bloques de 6 semanas con flechas
+- **Botón "Hoy":** Muestra la fecha actual (ej: "17 Abril") y navega a la semana actual
+- **Copiar semana:** Sistema de seleccionar/pegar sin modal
+  - Click en botón de copiar → marca la semana
+  - Click en otra semana → pega el menú
+  - Click de nuevo en semana marcada → cancela
+  - Spinner durante la operación
 - **Selector de plato:** Con buscador y miniaturas de imágenes
-- **Detalle del día:** Muestra imágenes de los platos seleccionados
+- **Detalle del día:** Mostrar editar con icono de lápiz
+- **Título del header:** Rango completo de fechas (ej: "6 Abril - 30 Mayo")
 - **Aspect ratio adaptativo:** Cambia según el sidebar esté expandido/colapsado
+- **Vista cuadrícula:** Texto negro, tamaño mayor en pantallas ≥768px
 
 ### Interfaz
 - **Color primario:** Naranja (#e67300)
@@ -232,6 +238,17 @@ mealendar/
 - `npm run preview`: Previsualizar producción
 
 ## Changelog
+
+### v2.1.0
+- Semanas mostradas: actual + 5 siguientes (6 semanas totales)
+- Navegación en bloques de 6 semanas
+- Sistema de copiar semanas sin modal
+- Spinner al copiar/pegar semana
+- Botón "Hoy" muestra fecha actual (ej: "17 Abril")
+- Título header con rango completo de fechas
+- Modal de día: icono de lápiz para editar plato
+- Vista cuadrícula: texto negro, tamaño mayor en ≥768px
+- Eliminada transparencia de días de otros meses
 
 ### v2.0.0
 - Sidebar colapsable (escritorio ≥768px)
