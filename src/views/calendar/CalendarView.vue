@@ -257,59 +257,10 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useDailyMenuStore } from '../../stores/dailyMenu'
 import { useDishStore } from '../../stores/dishes'
+import { getCachedImage, cacheImage } from '../../lib/imageCache'
 
 const dailyMenuStore = useDailyMenuStore()
 const dishStore = useDishStore()
-
-// Image cache - stores Base64 images in localStorage
-const imageCache = new Map()
-
-// Load cached image from localStorage
-function getCachedImage(url) {
-  if (!url) return null
-  
-  // Check memory cache first
-  if (imageCache.has(url)) {
-    return imageCache.get(url)
-  }
-  
-  // Check localStorage
-  const cached = localStorage.getItem(`img_${btoa(url)}`)
-  if (cached) {
-    const data = JSON.parse(cached)
-    if (data.expires > Date.now()) {
-      imageCache.set(url, data.url)
-      return data.url
-    } else {
-      localStorage.removeItem(`img_${btoa(url)}`)
-    }
-  }
-  
-  return null
-}
-
-// Save image to cache
-async function cacheImage(url) {
-  if (!url || imageCache.has(url)) return
-  
-  try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64 = reader.result
-      imageCache.set(url, base64)
-      // Save to localStorage with 7-day expiry
-      localStorage.setItem(`img_${btoa(url)}`, JSON.stringify({
-        url: base64,
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000
-      }))
-    }
-    reader.readAsDataURL(blob)
-  } catch (e) {
-    // Ignore errors
-  }
-}
 
 // Pre-cache images for all dishes
 function preCacheDishImages() {

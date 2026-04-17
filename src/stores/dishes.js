@@ -7,6 +7,9 @@ export const useDishStore = defineStore('dishes', () => {
   const loading = ref(false)
   const error = ref(null)
 
+  // Cache en memoria para todos los platos (una vez cargados, se mantienen en memoria)
+  const dishesCacheLoaded = ref(false)
+
   const dishesByMealType = computed(() => {
     return (mealType) => {
       if (mealType === 'all') return dishes.value
@@ -15,6 +18,11 @@ export const useDishStore = defineStore('dishes', () => {
   })
 
   async function fetchDishes() {
+    // Si ya tenemos platos cacheados, no volver a cargar
+    if (dishesCacheLoaded.value && dishes.value.length > 0) {
+      return
+    }
+
     loading.value = true
     error.value = null
     try {
@@ -25,6 +33,27 @@ export const useDishStore = defineStore('dishes', () => {
       
       if (err) throw err
       dishes.value = data
+      dishesCacheLoaded.value = true
+    } catch (e) {
+      error.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Funcion para forzar recarga de platos (util quando se modifica un plato)
+  async function refreshDishes() {
+    loading.value = true
+    error.value = null
+    try {
+      const { data, error: err } = await supabase
+        .from(TABLES.DISHES)
+        .select('*')
+        .order('name')
+      
+      if (err) throw err
+      dishes.value = data
+      dishesCacheLoaded.value = true
     } catch (e) {
       error.value = e.message
     } finally {
@@ -161,6 +190,7 @@ export const useDishStore = defineStore('dishes', () => {
     error,
     dishesByMealType,
     fetchDishes,
+    refreshDishes,
     addDish,
     updateDish,
     deleteDish
