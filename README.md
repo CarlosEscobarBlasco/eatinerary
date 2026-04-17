@@ -209,7 +209,8 @@ mealendar/
 │   │   └── BottomNav.vue        # Navegación (sidebar + bottom nav)
 │   ├── lib/
 │   │   ├── router/index.js
-│   │   └── supabase.js
+│   │   ├── supabase.js
+│   │   └── imageCache.js      # Cache global de imágenes
 │   ├── stores/
 │   │   ├── auth.js
 │   │   ├── dishes.js
@@ -237,7 +238,84 @@ mealendar/
 - `npm run build`: Compilar producción
 - `npm run preview`: Previsualizar producción
 
+## Sistema de Caché
+
+La app implementa múltiples niveles de caché para optimizar las llamadas a la base de datos.
+
+### Caché de Platos (`stores/dishes.js`)
+
+```javascript
+// Flag para evitar recargas innecesarias
+const dishesCacheLoaded = ref(false)
+
+async function fetchDishes() {
+  // Si ya tiene platos, no vuelve a pedir
+  if (dishesCacheLoaded.value && dishes.value.length > 0) {
+    return
+  }
+  // ... fetch a la DB
+  dishesCacheLoaded.value = true
+}
+```
+
+- Los platos se cargan una sola vez al iniciar la app
+- `refreshDishes()` fuerza recarga cuando se modifica un plato
+
+### Caché de Menús Diarios (`stores/dailyMenu.js`)
+
+```javascript
+// Cache por fecha individual (YYYY-MM-DD)
+const menuCache = new Map()
+
+// Cache por rango de fechas
+const rangeCache = new Map()
+```
+
+| Función | Comportamiento |
+|---------|----------------|
+| `fetchDailyMenus(start, end)` | Verifica cache por rango antes de DB |
+| `fetchMenuForDate(date)` | Verifica cache por fecha antes de DB |
+| `setDishForDate()` | Actualiza cache y limpia rango |
+| `removeDishFromDate()` | Actualiza cache y limpia rango |
+| `clearCache()` | Limpia todo el cache |
+
+**Ejemplo de rango:** `"2026-04-13-2026-05-16"` (aproximadamente 40 días)
+
+### Caché de Imágenes (`lib/imageCache.js`)
+
+```javascript
+// Memory cache (Map) - persiste entre componentes
+const memoryCache = new Map()
+
+// localStorage - persiste por 7 días
+```
+
+| Paso | Acción |
+|-----|--------|
+| 1 | ¿Está en memory cache? → retornar |
+| 2 | ¿Está en localStorage (no expirado)? → retornar y guardar en memoria |
+| 3 | Fetch a Supabase Storage → guardar en ambos caches |
+
+- **Persistencia**: Memoria + localStorage (7 días)
+- **Hash**: Usa función hash en lugar de btoa para evitar problemas con caracteres especiales
+- **Global**: Compartido entre CalendarView y DishesView
+
+### Invalidación de Cache
+
+| Evento | Acción |
+|--------|--------|
+| Modificar menú | Limpia rangeCache |
+| Recargar página | Mantiene cache de imágenes, limpia cache de datos |
+| Logout | (No implementado) debería llamar `clearCache()` |
+
 ## Changelog
+
+### v2.2.0
+- Sistema de caché para optimizar DB
+- **Cache de platos**: Se cargan una vez, no se recargan
+- **Cache de menús**: Por fecha y rango de fechas
+- **Cache de imágenes**: Global (memory + localStorage 7 días)
+- Módulo `lib/imageCache.js` compartido entre vistas
 
 ### v2.1.0
 - Semanas mostradas: actual + 5 siguientes (6 semanas totales)
