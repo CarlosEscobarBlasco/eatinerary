@@ -735,14 +735,6 @@ onMounted(async () => {
   // Pre-cache dish images
   preCacheDishImages()
   
-  // Scroll to today after load
-  setTimeout(() => {
-    const todayEl = document.querySelector('.day-row.today')
-    if (todayEl) {
-      todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, 100)
-  
   // Listen for sidebar expand/collapse
   window.addEventListener('sidebar-expanded', handleSidebarExpanded)
 })
