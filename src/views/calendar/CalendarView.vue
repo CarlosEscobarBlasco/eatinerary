@@ -57,8 +57,24 @@
           <div v-for="week in monthWeeks" :key="week.start" class="week-group">
             <div class="week-header">
               <span class="week-label">{{ week.label }}</span>
-              <button class="copy-week-btn" @click="openCopyWeekModal(week)" title="Copiar de otra semana">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <button 
+                class="copy-week-btn" 
+                :class="{ 'copied': copiedWeek?.start === week.start, 'paste-mode': copiedWeek && copiedWeek.start !== week.start, 'copying': copyingWeek === week.start }"
+                @click="handleCopyWeek(week)" 
+                :title="copiedWeek && copyingWeek !== week.start ? 'Pegar menú' : copiedWeek ? 'Copiar menú' : 'Copiar semana'"
+                :disabled="copyingWeek !== null"
+              >
+                <svg v-if="copyingWeek === week.start" class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                <svg v-else-if="copiedWeek?.start === week.start" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <svg v-else-if="copiedWeek && copiedWeek.start !== week.start" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -228,36 +244,6 @@
         <button class="modal-cancel-btn" @click="closeDishSelector">Cancelar</button>
       </div>
     </div>
-
-    <!-- Copy Week Modal -->
-    <div v-if="copyWeekModal.show" class="modal-overlay" @click.self="closeCopyWeekModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="header-top">
-            <h2>Copiar semana de...</h2>
-            <button class="modal-close" @click="closeCopyWeekModal">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <div class="weeks-list">
-          <div 
-            v-for="week in previousWeeks" 
-            :key="week.label" 
-            class="week-option"
-            @click="copyFromPastWeek(week)"
-          >
-            {{ week.label }}
-          </div>
-        </div>
-        
-        <button class="modal-cancel-btn" @click="closeCopyWeekModal">Cancelar</button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -380,9 +366,9 @@ const monthMenus = ref({})
 const dishSelector = ref({ show: false, mealType: null })
 const dishSearchQuery = ref('')
 
-// Copy week modal state
-const copyWeekModal = ref({ show: false, week: null })
-const previousWeeks = ref([])
+// Copy week state
+const copiedWeek = ref(null) // Week selected to copy from
+const copyingWeek = ref(null) // Week currently being copied to
 
 // Constants
 const weekDays = ['L', 'M', 'X', 'J', 'V']
@@ -396,16 +382,21 @@ function getWeekStart(date) {
 }
 
 const weekRangeLabel = computed(() => {
-  const start = currentWeekStart.value
-  const end = currentWeekEnd.value
-  const startMonth = start.getMonth()
-  const endMonth = end.getMonth()
-  const startDay = start.getDate()
-  const endDay = end.getDate()
-  const year = start.getFullYear()
+  // Show range from first week to last week (current to +5)
+  const firstWeekStart = new Date(currentWeekStart.value)
+  const lastWeekStart = new Date(currentWeekStart.value)
+  lastWeekStart.setDate(lastWeekStart.getDate() + 5 * 7) // +5 weeks
+  const lastWeekEnd = new Date(lastWeekStart)
+  lastWeekEnd.setDate(lastWeekEnd.getDate() + 4) // Friday
+  
+  const startMonth = firstWeekStart.getMonth()
+  const startDay = firstWeekStart.getDate()
+  const endMonth = lastWeekEnd.getMonth()
+  const endDay = lastWeekEnd.getDate()
+  const year = firstWeekStart.getFullYear()
   
   if (startMonth === endMonth) {
-    return `${startDay} - ${endDay} ${monthNames[startMonth]}${year !== today.getFullYear() ? ' ' + year : ''}`
+    return `${startDay} ${monthNames[startMonth]} - ${endDay} ${monthNames[endMonth]}${year !== today.getFullYear() ? ' ' + year : ''}`
   } else {
     return `${startDay} ${monthNames[startMonth]} - ${endDay} ${monthNames[endMonth]}${year !== today.getFullYear() ? ' ' + year : ''}`
   }
@@ -420,8 +411,8 @@ const calendarDays = computed(() => {
   const days = []
   const weekStart = new Date(currentWeekStart.value)
   
-  // Generate 6 weeks: from week -1 to week +4 (relative to current week)
-  for (let weekNum = -1; weekNum <= 4; weekNum++) {
+  // Generate 6 weeks: from current week (0) to week +5
+  for (let weekNum = 0; weekNum <= 5; weekNum++) {
     const thisWeekStart = new Date(weekStart)
     thisWeekStart.setDate(thisWeekStart.getDate() + weekNum * 7)
     
@@ -457,8 +448,8 @@ const monthWeeks = computed(() => {
   // Nombres de días cortos - siempre de lunes a viernes
   const dayNamesShort = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie']
   
-  // Generate 6 weeks: from week -1 to week +4 (relative to current week)
-  for (let weekNum = -1; weekNum <= 4; weekNum++) {
+  // Generate 6 weeks: from current week (0) to week +5
+  for (let weekNum = 0; weekNum <= 5; weekNum++) {
     const thisWeekStart = new Date(weekStart)
     thisWeekStart.setDate(thisWeekStart.getDate() + weekNum * 7)
     
@@ -614,118 +605,84 @@ function closeDishSelector() {
   dishSearchQuery.value = ''
 }
 
-function openCopyWeekModal(week) {
-  copyWeekModal.value = { show: true, week }
-  previousWeeks.value = []
-  
-  // Find the start date of the selected week
-  const weekStart = week.days.find(d => d && d.dayOfWeek === 1)?.dateObj
-  if (!weekStart) return
-  
-  // Get last 8 weeks before this week
-  for (let i = 1; i <= 8; i++) {
-    const daysToSubtract = i * 7
-    const pastWeekStart = new Date(weekStart)
-    pastWeekStart.setDate(pastWeekStart.getDate() - daysToSubtract)
-    
-    const pastWeekEnd = new Date(pastWeekStart)
-    pastWeekEnd.setDate(pastWeekEnd.getDate() + 4) // Get Friday
-    
-    const year = pastWeekStart.getFullYear()
-    const startDay = pastWeekStart.getDate()
-    const endDay = pastWeekEnd.getDate()
-    const startMonth = pastWeekStart.getMonth()
-    const endMonth = pastWeekEnd.getMonth()
-    
-    // Show full date range if spanning months
-    let label
-    if (startMonth === endMonth) {
-      label = `${startDay}-${endDay} ${monthNames[startMonth]}`
-    } else {
-      label = `${startDay} ${monthNames[startMonth]} - ${endDay} ${monthNames[endMonth]}`
-    }
-    
-    previousWeeks.value.push({
-      label,
-      startDate: pastWeekStart,
-      year,
-      month: startMonth
-    })
-  }
-}
-
-function closeCopyWeekModal() {
-  copyWeekModal.value = { show: false, week: null }
-  previousWeeks.value = []
-}
-
-async function copyFromPastWeek(pastWeek) {
-  if (!copyWeekModal.value.week || !pastWeek) return
-  
-  const targetWeek = copyWeekModal.value.week
-  const pastStartDate = pastWeek.startDate
-  
-  // Get menus from the past week (5 days: Monday to Friday)
-  const pastMenus = {}
-  const startDate = new Date(pastStartDate)
-  for (let i = 0; i < 5; i++) {
-    const date = new Date(startDate)
-    date.setDate(date.getDate() + i)
-    const dateStr = formatDate(date)
-    pastMenus[i] = { date: dateStr }
+// Handle copy week button click
+async function handleCopyWeek(week) {
+  // If no week is copied yet, select this week as source
+  if (!copiedWeek.value) {
+    copiedWeek.value = week
+    return
   }
   
-  // Fetch menus from the past week dates
-  const pastStartStr = formatDate(startDate)
-  const pastEndDate = new Date(startDate)
-  pastEndDate.setDate(pastEndDate.getDate() + 4)
-  const pastEndStr = formatDate(pastEndDate)
+  // If this is the same week that's copied, deselect
+  if (copiedWeek.value.start === week.start) {
+    copiedWeek.value = null
+    return
+  }
   
-  await dailyMenuStore.fetchDailyMenus(pastStartStr, pastEndStr)
+  // If another week is already copied, paste to this week
+  copyingWeek.value = week.start
+  await pasteWeekMenu(week)
+  copyingWeek.value = null
+  copiedWeek.value = null
+}
+
+// Paste menu from copied week to target week
+async function pasteWeekMenu(targetWeek) {
+  if (!copiedWeek.value || !targetWeek) return
   
-  // Create a map of past menus by day of week
-  const pastMenuMap = {}
+  const sourceStart = copiedWeek.value.days.find(d => d && d.dayOfWeek === 1)?.dateObj
+  if (!sourceStart) return
+  
+  // Fetch menus from source week
+  const sourceStartStr = formatDate(sourceStart)
+  const sourceEndDate = new Date(sourceStart)
+  sourceEndDate.setDate(sourceEndDate.getDate() + 4)
+  const sourceEndStr = formatDate(sourceEndDate)
+  
+  await dailyMenuStore.fetchDailyMenus(sourceStartStr, sourceEndStr)
+  
+  // Create a map of source menus by day of week (0 = Monday, 4 = Friday)
+  const sourceMenuMap = {}
   for (const menu of dailyMenuStore.dailyMenus) {
     const menuDate = new Date(menu.date + 'T00:00:00')
     const dow = menuDate.getDay()
-    const adjustedDow = dow === 0 ? 7 : dow - 1 // 0 = Monday, 4 = Friday
+    const adjustedDow = dow === 0 ? 7 : dow - 1 // Convert to 1-5
     
-    if (!pastMenuMap[adjustedDow]) {
-      pastMenuMap[adjustedDow] = { lunch: null, dinner: null }
+    if (!sourceMenuMap[adjustedDow]) {
+      sourceMenuMap[adjustedDow] = { lunch: null, dinner: null }
     }
     
     const dish = Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes
     
     if (menu.meal_type === 'lunch') {
-      pastMenuMap[adjustedDow].lunch = dish
+      sourceMenuMap[adjustedDow].lunch = dish
     } else if (menu.meal_type === 'dinner') {
-      pastMenuMap[adjustedDow].dinner = dish
+      sourceMenuMap[adjustedDow].dinner = dish
     }
   }
   
-  // Copy to target week
+  // Paste to target week
   for (let i = 0; i < 5; i++) {
     const targetDay = targetWeek.days.find(d => d && d.dayOfWeek === i + 1)
     if (!targetDay || !targetDay.date) continue
     
-    const pastMenu = pastMenuMap[i]
-    if (!pastMenu) continue
+    const sourceMenu = sourceMenuMap[i + 1]
+    if (!sourceMenu) continue
     
     const targetDateStr = targetDay.date
     
     // Copy lunch
-    if (pastMenu.lunch) {
-      await dailyMenuStore.setDishForDate(targetDateStr, pastMenu.lunch.id, 'lunch')
+    if (sourceMenu.lunch) {
+      await dailyMenuStore.setDishForDate(targetDateStr, sourceMenu.lunch.id, 'lunch')
     }
     
     // Copy dinner
-    if (pastMenu.dinner) {
-      await dailyMenuStore.setDishForDate(targetDateStr, pastMenu.dinner.id, 'dinner')
+    if (sourceMenu.dinner) {
+      await dailyMenuStore.setDishForDate(targetDateStr, sourceMenu.dinner.id, 'dinner')
     }
   }
   
-  await loadMonthMenus()
-  closeCopyWeekModal()
+  await loadWeekMenus()
 }
 
 async function assignDish(dishId) {
@@ -746,12 +703,11 @@ async function removeDish() {
 }
 
 async function loadWeekMenus() {
-  // Load menus for week -1 to +4 (relative to current week)
+  // Load menus for current week to week +5
   const start = new Date(currentWeekStart.value)
-  start.setDate(start.getDate() - 7 * 1) // Week -1 (one week before current)
   
   const end = new Date(currentWeekStart.value)
-  end.setDate(end.getDate() + 7 * 4 + 4) // Week +4, Friday
+  end.setDate(end.getDate() + 7 * 5 + 4) // Week +5, Friday
   
   await dailyMenuStore.fetchDailyMenus(formatDate(start), formatDate(end))
   const menus = {}
@@ -971,11 +927,36 @@ onUnmounted(() => {
   background: var(--surface-container);
   border: none;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .copy-week-btn:hover {
   background: var(--primary);
   color: var(--on-primary);
+}
+
+.copy-week-btn.copied {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.copy-week-btn.paste-mode {
+  background: var(--primary-container);
+  color: var(--primary);
+}
+
+.copy-week-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.copy-week-btn .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .day-row {
