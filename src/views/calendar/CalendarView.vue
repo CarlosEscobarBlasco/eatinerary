@@ -15,7 +15,7 @@
               </svg>
             </button>
             
-            <button class="today-btn" @click="goToToday">Hoy</button>
+            <button class="today-btn" @click="goToToday">{{ today.getDate() }} {{ monthNames[today.getMonth()] }}</button>
             
             <button class="nav-btn" @click="nextWeek">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -179,7 +179,10 @@
           <div v-if="dayMenu.lunch" class="modal-dish" @click="selectDish('lunch')">
             <img v-if="dayMenu.lunch.image_url" :src="getImage(dayMenu.lunch.image_url)" class="dish-thumb" />
             <span>{{ dayMenu.lunch.name }}</span>
-            <span class="change-btn">Cambiar</span>
+            <svg class="change-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
           </div>
           <button v-else class="modal-add-btn" @click="selectDish('lunch')">+ Añadir</button>
         </div>
@@ -191,7 +194,10 @@
           <div v-if="dayMenu.dinner" class="modal-dish" @click="selectDish('dinner')">
             <img v-if="dayMenu.dinner.image_url" :src="getImage(dayMenu.dinner.image_url)" class="dish-thumb" />
             <span>{{ dayMenu.dinner.name }}</span>
-            <span class="change-btn">Cambiar</span>
+            <svg class="change-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
           </div>
           <button v-else class="modal-add-btn" @click="selectDish('dinner')">+ Añadir</button>
         </div>
@@ -566,11 +572,11 @@ const currentDishForMeal = computed(() => {
 
 // Methods
 function prevWeek() {
-  currentWeekOffset.value--
+  currentWeekOffset.value -= 6
 }
 
 function nextWeek() {
-  currentWeekOffset.value++
+  currentWeekOffset.value += 6
 }
 
 function goToToday() {
@@ -1154,11 +1160,17 @@ onUnmounted(() => {
 .meal-indicator .meal-line {
   font-size: 0.55rem;
   font-weight: 600;
-  color: var(--primary);
+  color: #000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .meal-indicator .meal-line {
+    font-size: 0.7rem;
+  }
 }
 
 .meal-indicator:hover {
@@ -1325,6 +1337,12 @@ onUnmounted(() => {
 }
 
 .change-btn { color: var(--primary); font-weight: 500; font-size: 0.85rem; }
+
+.change-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-left: auto;
+}
 
 .modal-add-btn {
   width: 100%;
