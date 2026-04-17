@@ -598,23 +598,24 @@ async function pasteWeekMenu(targetWeek) {
   
   await dailyMenuStore.fetchDailyMenus(sourceStartStr, sourceEndStr)
   
-  // Create a map of source menus by day of week (0 = Monday, 4 = Friday)
+  // Create a map of source menus by day of week (Lun=1 to Fri=5)
   const sourceMenuMap = {}
   for (const menu of dailyMenuStore.dailyMenus) {
     const menuDate = new Date(menu.date + 'T00:00:00')
     const dow = menuDate.getDay()
-    const adjustedDow = dow === 0 ? 7 : dow - 1 // Convert to 1-5
+    // Only Mon-Fri (1-5), skip weekends (0=Sun, 6=Sat)
+    if (dow < 1 || dow > 5) continue
     
-    if (!sourceMenuMap[adjustedDow]) {
-      sourceMenuMap[adjustedDow] = { lunch: null, dinner: null }
+    if (!sourceMenuMap[dow]) {
+      sourceMenuMap[dow] = { lunch: null, dinner: null }
     }
     
     const dish = Array.isArray(menu.dishes) ? menu.dishes[0] : menu.dishes
     
     if (menu.meal_type === 'lunch') {
-      sourceMenuMap[adjustedDow].lunch = dish
+      sourceMenuMap[dow].lunch = dish
     } else if (menu.meal_type === 'dinner') {
-      sourceMenuMap[adjustedDow].dinner = dish
+      sourceMenuMap[dow].dinner = dish
     }
   }
   
