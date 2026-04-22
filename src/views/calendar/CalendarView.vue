@@ -98,19 +98,25 @@
                 </div>
                 
                 <div class="day-meals">
-                  <div v-if="day.hasLunch" class="meal-item">
-                    <span class="meal-name">{{ day.lunchName }}</span>
+                  <div v-if="isDateLoading(day.date)" class="meal-item loading">
+                    <span class="meal-spinner"></span>
+                    <span class="meal-loading-text">Cargando...</span>
                   </div>
-                  <div v-else class="meal-item empty">
-                    <span class="meal-empty">Sin planificar</span>
-                  </div>
-                  
-                  <div v-if="day.hasDinner" class="meal-item">
-                    <span class="meal-name">{{ day.dinnerName }}</span>
-                  </div>
-                  <div v-else class="meal-item empty">
-                    <span class="meal-empty">Sin planificar</span>
-                  </div>
+                  <template v-else>
+                    <div v-if="day.hasLunch" class="meal-item">
+                      <span class="meal-name">{{ day.lunchName }}</span>
+                    </div>
+                    <div v-else class="meal-item empty">
+                      <span class="meal-empty">Sin planificar</span>
+                    </div>
+                    
+                    <div v-if="day.hasDinner" class="meal-item">
+                      <span class="meal-name">{{ day.dinnerName }}</span>
+                    </div>
+                    <div v-else class="meal-item empty">
+                      <span class="meal-empty">Sin planificar</span>
+                    </div>
+                  </template>
                 </div>
                 
                 <div class="day-arrow">
@@ -143,11 +149,14 @@
                 @click="selectDate(day)"
               >
                 <span class="day-number">{{ day.day }}</span>
-                <div v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
-                  <span v-for="(meal, index) in getMealLines(day)" :key="index" class="meal-line">
-                    {{ meal.text }}
-                  </span>
-                </div>
+                <div v-if="isDateLoading(day.date)" class="day-loading-spinner"></div>
+                <template v-else>
+                  <div v-if="day.hasLunch || day.hasDinner" class="meal-indicator" :title="getMealNames(day)">
+                    <span v-for="(meal, index) in getMealLines(day)" :key="index" class="meal-line">
+                      {{ meal.text }}
+                    </span>
+                  </div>
+                </template>
               </div>
               <div v-else class="calendar-day empty"></div>
             </template>
@@ -320,6 +329,7 @@ const currentWeekEnd = computed(() => {
 const selectedDate = ref(null)
 const dayMenu = ref({ lunch: null, dinner: null })
 const monthMenus = ref({})
+const loadingDates = ref(new Set()) // Track which dates are currently loading
 const dishSelector = ref({ show: false, mealType: null })
 const dishSearchQuery = ref('')
 
@@ -497,6 +507,11 @@ function getMealNames(day) {
   return meals.join('\n') || ''
 }
 
+// Check if a specific date is currently loading
+function isDateLoading(dateStr) {
+  return loadingDates.value.has(dateStr)
+}
+
 const availableDishes = computed(() => {
   const mealType = dishSelector.value.mealType
   const query = dishSearchQuery.value.toLowerCase().trim()
@@ -667,6 +682,17 @@ async function loadWeekMenus() {
   const end = new Date(currentWeekStart.value)
   end.setDate(end.getDate() + 7 * 5 + 4) // Week +5, Friday
   
+  // Mark all dates in the current view as loading
+  const datesToLoad = []
+  for (let weekNum = 0; weekNum <= 5; weekNum++) {
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(start)
+      date.setDate(date.getDate() + weekNum * 7 + i)
+      datesToLoad.push(formatDate(date))
+    }
+  }
+  loadingDates.value = new Set(datesToLoad)
+  
   await dailyMenuStore.fetchDailyMenus(formatDate(start), formatDate(end))
   const menus = {}
   for (const menu of dailyMenuStore.dailyMenus) {
@@ -676,6 +702,9 @@ async function loadWeekMenus() {
     menus[menu.date][menu.meal_type] = dish
   }
   monthMenus.value = menus
+  
+  // Clear loading state for all dates
+  loadingDates.value = new Set()
 }
 
 watch(currentWeekOffset, loadWeekMenus)
@@ -964,6 +993,25 @@ onUnmounted(() => {
 .meal-item { display: flex; align-items: center; gap: 8px; }
 .meal-item.empty { opacity: 0.5; }
 
+.meal-item.loading {
+  opacity: 0.6;
+}
+
+.meal-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--surface-container-high);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.meal-loading-text {
+  font-size: 0.8rem;
+  color: var(--on-surface-variant);
+}
+
 .meal-name { font-size: 0.85rem; font-weight: 600; color: #333333; }
 .meal-empty { font-size: 0.8rem; color: var(--on-surface-variant); }
 
@@ -1083,6 +1131,23 @@ onUnmounted(() => {
 .calendar-day.today .day-number {
   color: var(--on-primary-container);
   font-weight: 700;
+}
+
+.day-loading-spinner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-loading-spinner::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--surface-container-high);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .meal-indicator {
