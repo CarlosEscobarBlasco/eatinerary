@@ -565,8 +565,6 @@ onMounted(async () => {
   gap: 6px;
   padding: 6px 14px;
   border-radius: 8px;
-  color: var(--on-surface-variant);
-  background: var(--surface-container);
   border: none;
   font-size: 0.8rem;
   font-weight: 600;
@@ -574,9 +572,23 @@ onMounted(async () => {
   transition: all 0.2s;
 }
 
+.edit-btn {
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+}
+
+.transfer-btn {
+  color: var(--on-primary);
+  background: var(--primary);
+}
+
 .edit-btn.active {
   background: var(--primary);
   color: var(--on-primary);
+}
+
+.edit-btn:not(.active):hover {
+  background: var(--surface-container-high);
 }
 
 .transfer-btn:hover {
@@ -645,7 +657,7 @@ onMounted(async () => {
 .weeks-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px 120px;
+  padding: 0 16px 16px;
 }
 
 .week-group {
@@ -897,7 +909,7 @@ onMounted(async () => {
 }
 
 .modal-meal {
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .modal-meal-header {
@@ -1052,7 +1064,7 @@ onMounted(async () => {
   }
 
   .weeks-list {
-    padding: 0 32px 100px;
+    padding: 0 32px 16px;
   }
 }
 

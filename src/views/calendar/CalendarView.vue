@@ -57,28 +57,6 @@
           <div v-for="week in monthWeeks" :key="week.start" class="week-group">
             <div class="week-header">
               <span class="week-label">{{ week.label }}</span>
-              <button 
-                class="copy-week-btn" 
-                :class="{ 'copied': copiedWeek?.start === week.start, 'paste-mode': copiedWeek && copiedWeek.start !== week.start, 'copying': copyingWeek === week.start }"
-                @click="handleCopyWeek(week)" 
-                :title="copiedWeek && copyingWeek !== week.start ? 'Pegar menú' : copiedWeek ? 'Copiar menú' : 'Copiar semana'"
-                :disabled="copyingWeek !== null"
-              >
-                <svg v-if="copyingWeek === week.start" class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-                <svg v-else-if="copiedWeek?.start === week.start" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <svg v-else-if="copiedWeek && copiedWeek.start !== week.start" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
             </div>
             
             <template v-for="day in week.days.filter(d => d && !d.isWeekend)" :key="day?.date">
@@ -892,49 +870,6 @@ onUnmounted(() => {
 
 .week-label {
   flex: 1;
-}
-
-.copy-week-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--on-surface-variant);
-  background: var(--surface-container);
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.copy-week-btn:hover {
-  background: var(--primary);
-  color: var(--on-primary);
-}
-
-.copy-week-btn.copied {
-  background: var(--primary);
-  color: var(--on-primary);
-}
-
-.copy-week-btn.paste-mode {
-  background: var(--primary-container);
-  color: var(--primary);
-}
-
-.copy-week-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.copy-week-btn .spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .day-row {

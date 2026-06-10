@@ -15,15 +15,6 @@
         </svg>
         <span v-if="!isCollapsed" class="sidebar-label">Calendario</span>
       </RouterLink>
-      
-      <RouterLink to="/dishes" class="sidebar-item" :class="{ active: $route.path === '/dishes' }">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
-          <path d="M7 2v20"></path>
-          <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
-        </svg>
-        <span v-if="!isCollapsed" class="sidebar-label">Platos</span>
-      </RouterLink>
 
       <RouterLink to="/menu" class="sidebar-item" :class="{ active: $route.path === '/menu' }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -33,6 +24,15 @@
           <line x1="9" y1="17" x2="13" y2="17"></line>
         </svg>
         <span v-if="!isCollapsed" class="sidebar-label">Menú</span>
+      </RouterLink>
+
+      <RouterLink to="/dishes" class="sidebar-item" :class="{ active: $route.path === '/dishes' }">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+          <path d="M7 2v20"></path>
+          <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+        </svg>
+        <span v-if="!isCollapsed" class="sidebar-label">Platos</span>
       </RouterLink>
     </div>
     <button class="collapse-btn" @click="toggleSidebar" :title="isCollapsed ? 'Expandir' : 'Colapsar'">
