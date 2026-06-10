@@ -909,7 +909,7 @@ onMounted(async () => {
 }
 
 .modal-meal {
-  margin-bottom: 0px;
+  margin-bottom: 16px;
 }
 
 .modal-meal-header {
