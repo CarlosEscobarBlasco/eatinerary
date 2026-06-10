@@ -20,6 +20,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/menu',
+    name: 'Menu',
+    component: () => import('../../views/menu/MenuView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/home',
     name: 'Home',
     component: () => import('../../views/home/HomeView.vue'),

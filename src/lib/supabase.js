@@ -7,7 +7,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export const TABLES = {
   DISHES: 'dishes',
-  DAILY_MENU: 'daily_menu'
+  DAILY_MENU: 'daily_menu',
+  MENU_WEEKS: 'menu_weeks',
+  WEEK_MEALS: 'week_meals'
 }
 
 export const MEAL_TYPES = {

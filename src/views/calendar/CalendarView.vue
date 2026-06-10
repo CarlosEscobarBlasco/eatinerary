@@ -129,7 +129,6 @@
           </div>
         </div>
 
-        <!-- Content: Grid View (not scrollable, fits in screen) -->
         <div v-else class="calendar-content-grid">
         <div class="weekdays-header">
           <span v-for="day in weekDays" :key="day" class="weekday">{{ day }}</span>
@@ -1117,7 +1116,6 @@ onUnmounted(() => {
 }
 
 .calendar-day.today { background: var(--primary-container); border: 2px solid var(--primary); }
-.calendar-day.has-meals { background: var(--surface-container-low); }
 
 .calendar-day .day-number {
   font-size: 0.7rem;

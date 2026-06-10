@@ -24,6 +24,16 @@
         </svg>
         <span v-if="!isCollapsed" class="sidebar-label">Platos</span>
       </RouterLink>
+
+      <RouterLink to="/menu" class="sidebar-item" :class="{ active: $route.path === '/menu' }">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="9" x2="15" y2="9"></line>
+          <line x1="9" y1="13" x2="15" y2="13"></line>
+          <line x1="9" y1="17" x2="13" y2="17"></line>
+        </svg>
+        <span v-if="!isCollapsed" class="sidebar-label">Menú</span>
+      </RouterLink>
     </div>
     <button class="collapse-btn" @click="toggleSidebar" :title="isCollapsed ? 'Expandir' : 'Colapsar'">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -42,16 +52,26 @@
         <line x1="8" y1="2" x2="8" y2="6"></line>
         <line x1="3" y1="10" x2="21" y2="10"></line>
       </svg>
-      <span>Calendario</span>
+      <span v-if="$route.path === '/'">Calendario</span>
     </RouterLink>
-    
+
+    <RouterLink to="/menu" class="nav-item" :class="{ active: $route.path === '/menu' }">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="9" y1="9" x2="15" y2="9"></line>
+        <line x1="9" y1="13" x2="15" y2="13"></line>
+        <line x1="9" y1="17" x2="13" y2="17"></line>
+      </svg>
+      <span v-if="$route.path === '/menu'">Menú</span>
+    </RouterLink>
+
     <RouterLink to="/dishes" class="nav-item" :class="{ active: $route.path === '/dishes' }">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
         <path d="M7 2v20"></path>
         <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
       </svg>
-      <span>Platos</span>
+      <span v-if="$route.path === '/dishes'">Platos</span>
     </RouterLink>
   </nav>
 </template>
@@ -105,21 +125,28 @@ window.addEventListener('resize', () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 20px;
-  border-radius: 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
   color: var(--on-surface-variant);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: none;
   border: none;
   cursor: pointer;
+  position: relative;
+}
+
+.nav-item:active {
+  transform: scale(0.92);
 }
 
 .nav-item.active {
   background: var(--surface-container-low);
   color: var(--primary);
+  transform: scaleX(1.08);
+  padding: 10px 20px;
 }
 
 .nav-item svg {

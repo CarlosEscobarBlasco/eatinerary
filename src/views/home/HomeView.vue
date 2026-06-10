@@ -28,6 +28,17 @@
         </div>
         <span class="nav-arrow">→</span>
       </RouterLink>
+
+      <RouterLink to="/menu" class="nav-card">
+        <div class="nav-icon-wrapper">
+          <span class="nav-icon">📋</span>
+        </div>
+        <div class="nav-text">
+          <span class="nav-label">Menú</span>
+          <span class="nav-desc">Crea tu menú semanal</span>
+        </div>
+        <span class="nav-arrow">→</span>
+      </RouterLink>
     </nav>
 
     <div class="home-footer">
